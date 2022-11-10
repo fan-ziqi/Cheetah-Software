@@ -35,7 +35,7 @@ PeriodicTask::PeriodicTask(PeriodicTaskManager *taskManager, float period,
  */
 void PeriodicTask::start()
 {
-    if (_running)
+    if(_running)
     {
         printf("[PeriodicTask] Tried to start %s but it was already running!\n",
                _name.c_str());
@@ -51,7 +51,7 @@ void PeriodicTask::start()
  */
 void PeriodicTask::stop()
 {
-    if (!_running)
+    if(!_running)
     {
         printf("[PeriodicTask] Tried to stop %s but it wasn't running!\n",
                _name.c_str());
@@ -86,8 +86,8 @@ void PeriodicTask::clearMax()
  */
 void PeriodicTask::printStatus()
 {
-    if (!_running) return;
-    if (isSlow())
+    if(!_running) return;
+    if(isSlow())
     {
         printf_color(PrintColor::Red, "|%-20s|%6.4f|%6.4f|%6.4f|%6.4f|%6.4f\n",
                      _name.c_str(), _lastRuntime, _maxRuntime, _period,
@@ -110,7 +110,7 @@ void PeriodicTask::loopFunction()
 #endif
     int seconds = (int) _period;
     int nanoseconds = (int) (1e9 * std::fmod(_period, 1.f));
-
+    
     Timer t;
 
 #ifdef linux
@@ -119,18 +119,18 @@ void PeriodicTask::loopFunction()
     timerSpec.it_value.tv_sec = seconds;
     timerSpec.it_value.tv_nsec = nanoseconds;
     timerSpec.it_interval.tv_nsec = nanoseconds;
-
+    
     timerfd_settime(timerFd, 0, &timerSpec, nullptr);
 #endif
     unsigned long long missed = 0;
-
+    
     printf("[PeriodicTask] Start %s (%d s, %d ns)\n", _name.c_str(), seconds,
            nanoseconds);
-    while (_running)
+    while(_running)
     {
         _lastPeriodTime = (float) t.getSeconds();
         t.start();
-        //循环执行PeriodicTask::run()函数，而PeriodicTask::run()是一个纯虚函数，实际调用的是RobotRunner::run()函数
+        //循环执行PeriodicTask::run()函数，而PeriodicTask::run()是一个纯虚函数，实际调用的是其基类的函数
         run();
         _lastRuntime = (float) t.getSeconds();
 #ifdef linux
@@ -163,7 +163,7 @@ void PeriodicTaskManager::printStatus()
     printf("|%-20s|%-6s|%-6s|%-6s|%-6s|%-6s\n", "name", "rt", "rt-max", "T-des",
            "T-act", "T-max");
     printf("-----------------------------------------------------------\n");
-    for (auto &task: _tasks)
+    for(auto &task: _tasks)
     {
         task->printStatus();
         task->clearMax();
@@ -176,9 +176,9 @@ void PeriodicTaskManager::printStatus()
  */
 void PeriodicTaskManager::printStatusOfSlowTasks()
 {
-    for (auto &task: _tasks)
+    for(auto &task: _tasks)
     {
-        if (task->isSlow())
+        if(task->isSlow())
         {
             task->printStatus();
             task->clearMax();
@@ -191,7 +191,7 @@ void PeriodicTaskManager::printStatusOfSlowTasks()
  */
 void PeriodicTaskManager::stopAll()
 {
-    for (auto &task: _tasks)
+    for(auto &task: _tasks)
     {
         task->stop();
     }

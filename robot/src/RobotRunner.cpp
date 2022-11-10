@@ -30,7 +30,7 @@ RobotRunner::RobotRunner(RobotController *robot_ctrl,
         _lcm(getLcmUrl(255))
 {
     
-    _robot_ctrl = robot_ctrl;//目前为空 之后应该会定义
+    _robot_ctrl = robot_ctrl;
 }
 
 /**
@@ -42,7 +42,7 @@ void RobotRunner::init()
     printf("[RobotRunner] initialize\n");
     
     // 选择要构建的机器人类型，_quadruped里面存了与机器人相关的数据
-    if (robotType == RobotType::MINI_CHEETAH)
+    if(robotType == RobotType::MINI_CHEETAH)
     {
         _quadruped = buildMiniCheetah<float>();
     }
@@ -106,28 +106,28 @@ void RobotRunner::run()
     static int count_ini(0);
     ++count_ini;
     // 计数50次后开启腿控制
-    if (count_ini < 10)
+    if(count_ini < 10)
     {
         _legController->setEnabled(false);
     }
-    else if (20 < count_ini && count_ini < 30)
+    else if(20 < count_ini && count_ini < 30)
     {
         _legController->setEnabled(false);
     }
-    else if (40 < count_ini && count_ini < 50)
+    else if(40 < count_ini && count_ini < 50)
     {
         _legController->setEnabled(false);
     }
     else
     {
-        //设置LegController对象使能
+        //使能LegController对象
         _legController->setEnabled(true);
         
         //当遥控器控制时的rc_control.mode为0时，将LegController对象的控制命令数据清零
-        if ((rc_control.mode == 0) && controlParameters->use_rc)
+        if((rc_control.mode == 0) && controlParameters->use_rc)
         {
-            if (count_ini % 1000 == 0) printf("ESTOP!\n");
-            for (int leg = 0; leg < 4; leg++)
+            if(count_ini % 1000 == 0) printf("ESTOP!\n");
+            for(int leg = 0; leg < 4; leg++)
             {
                 _legController->commands[leg].zero();
             }
@@ -137,17 +137,17 @@ void RobotRunner::run()
         else
         {
             // 如果关节位置初始对象没有初始化时，将LegController对象的各个关节的kp和kd赋值
-            if (!_jpos_initializer->IsInitialized(_legController))
+            if(!_jpos_initializer->IsInitialized(_legController))
             {
                 Mat3<float> kpMat;
                 Mat3<float> kdMat;
                 // 更新jpos反馈增益
-                if (robotType == RobotType::MINI_CHEETAH)
+                if(robotType == RobotType::MINI_CHEETAH)
                 {
                     kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
                     kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
                 }
-                else if (robotType == RobotType::CHEETAH_3)
+                else if(robotType == RobotType::CHEETAH_3)
                 {
                     kpMat << 50, 0, 0, 0, 50, 0, 0, 0, 50;
                     kdMat << 1, 0, 0, 0, 1, 0, 0, 0, 1;
@@ -157,7 +157,7 @@ void RobotRunner::run()
                     assert(false);
                 }
                 
-                for (int leg = 0; leg < 4; leg++)
+                for(int leg = 0; leg < 4; leg++)
                 {
                     _legController->commands[leg].kpJoint = kpMat;
                     _legController->commands[leg].kdJoint = kdMat;
@@ -180,9 +180,9 @@ void RobotRunner::run()
     }
     
     // 可视化 (之后会作为一个单独的函数)
-    for (int leg = 0; leg < 4; leg++)
+    for(int leg = 0; leg < 4; leg++)
     {
-        for (int joint = 0; joint < 3; joint++)
+        for(int joint = 0; joint < 3; joint++)
         {
             cheetahMainVisualization->q[leg * 3 + joint] =
                     _legController->datas[leg].q[joint];
@@ -202,11 +202,11 @@ void RobotRunner::run()
 void RobotRunner::setupStep()
 {
     // 选择机型、更新数据
-    if (robotType == RobotType::MINI_CHEETAH)
+    if(robotType == RobotType::MINI_CHEETAH)
     {
         _legController->updateData(spiData);
     }
-    else if (robotType == RobotType::CHEETAH_3)
+    else if(robotType == RobotType::CHEETAH_3)
     {
         _legController->updateData(tiBoardData);
     }
@@ -222,7 +222,7 @@ void RobotRunner::setupStep()
     
     // 状态估计器
     // check transition to cheater mode:
-    if (!_cheaterModeEnabled && controlParameters->cheater_mode)
+    if(!_cheaterModeEnabled && controlParameters->cheater_mode)
     {
         printf("[RobotRunner] Transitioning to Cheater Mode...\n");
         initializeStateEstimator(true);
@@ -231,7 +231,7 @@ void RobotRunner::setupStep()
     }
     
     // check transition from cheater mode:
-    if (_cheaterModeEnabled && !controlParameters->cheater_mode)
+    if(_cheaterModeEnabled && !controlParameters->cheater_mode)
     {
         printf("[RobotRunner] Transitioning from Cheater Mode...\n");
         initializeStateEstimator(false);
@@ -251,11 +251,11 @@ void RobotRunner::setupStep()
 void RobotRunner::finalizeStep()
 {
     //选择机型，发布命令
-    if (robotType == RobotType::MINI_CHEETAH)
+    if(robotType == RobotType::MINI_CHEETAH)
     {
         _legController->updateCommand(spiCommand);
     }
-    else if (robotType == RobotType::CHEETAH_3)
+    else if(robotType == RobotType::CHEETAH_3)
     {
         _legController->updateCommand(tiBoardCommand);
     }
@@ -284,7 +284,7 @@ void RobotRunner::initializeStateEstimator(bool cheaterMode)
     Vec4<float> contactDefault;
     contactDefault << 0.5, 0.5, 0.5, 0.5;
     _stateEstimator->setContactPhase(contactDefault);
-    if (cheaterMode)
+    if(cheaterMode)
     {
         _stateEstimator->addEstimator<CheaterOrientationEstimator<float>>();
         _stateEstimator->addEstimator<CheaterPositionVelocityEstimator<float>>();

@@ -256,7 +256,7 @@ void MiniCheetahHardwareBridge::run()
 {
     //初始化通信模块，调用基类HardwareBridge::initCommon()函数，通过LCM通信模块订阅interface和interface_request两个主题，并创建LCM线程
     initCommon();
-    //初始化MiniCheetah机器人的spi通信和惯性导航模块(IMU)；
+    //初始化MiniCheetah的spi和IMU
     initHardware();
     
     if(_load_parameters_from_file)
@@ -343,7 +343,7 @@ void MiniCheetahHardwareBridge::run()
     
     _firstRun = false;
     
-    // init control thread
+    // 初始化控制线程
     
     // 启动状态任务
     statusTask.start();
@@ -353,9 +353,11 @@ void MiniCheetahHardwareBridge::run()
             &taskManager, .002, "spi", &MiniCheetahHardwareBridge::runSpi, this);
     spiTask.start();
     
-    // 启动惯性导航线程
+    // 启动IMU线程
     if(_microstrainInit)
+    {
         _microstrainThread = std::thread(&MiniCheetahHardwareBridge::runMicrostrain, this);
+    }
     
     // 执行RobotRunner的任务，开启机器人控制器
     _robotRunner->start();

@@ -1,123 +1,125 @@
 /*============================== Passive ==============================*/
 /**
- * FSM State that calls no controls. Meant to be a safe state where the
- * robot should not do anything as all commands will be set to 0.
+ * FSM状态无需控制。意味着一个安全状态，机器人不应该做任何事情，因为所有命令都将设置为0。
  */
 
 #include "FSM_State_Passive.h"
 
 /**
- * Constructor for the FSM State that passes in state specific info to
- * the generic FSM State constructor.
+ * FSM状态的构造函数，该构造函数将状态特定信息传递给通用FSM状态构造函数
  *
- * @param _controlFSMData holds all of the relevant control data
+ * @param _controlFSMData 保存所有相关控制数据
  */
-template <typename T>
-FSM_State_Passive<T>::FSM_State_Passive(ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::PASSIVE, "PASSIVE") {
-  // Do nothing
-  // Set the pre controls safety checks
-  this->checkSafeOrientation = false;
-
-  // Post control safety checks
-  this->checkPDesFoot = false;
-  this->checkForceFeedForward = false;
+template<typename T>
+FSM_State_Passive<T>::FSM_State_Passive(ControlFSMData<T> *_controlFSMData)
+        : FSM_State<T>(_controlFSMData, FSM_StateName::PASSIVE, "PASSIVE")
+{
+    // 啥也不做
+    // 设置预控制安全检查
+    this->checkSafeOrientation = false;
+    
+    // 控制后安全检查
+    this->checkPDesFoot = false;
+    this->checkForceFeedForward = false;
 }
 
-template <typename T>
-void FSM_State_Passive<T>::onEnter() {
-  // Default is to not transition
-  this->nextStateName = this->stateName;
-
-  // Reset the transition data
-  this->transitionData.zero();
+template<typename T>
+void FSM_State_Passive<T>::onEnter()
+{
+    // 默认是不转换
+    this->nextStateName = this->stateName;
+    
+    // 重置转换数据
+    this->transitionData.zero();
 }
 
 /**
- * Calls the functions to be executed on each control loop iteration.
+ * 调用要在每个控制循环迭代中执行的函数
  */
-template <typename T>
-void FSM_State_Passive<T>::run() {
-  // Do nothing, all commands should begin as zeros
-  testTransition();
+template<typename T>
+void FSM_State_Passive<T>::run()
+{
+    // 什么都不做，所有的命令都应该以0开头
+    testTransition();
 }
 
 /**
- * Handles the actual transition for the robot between states.
- * Returns true when the transition is completed.
+ * 处理机器人在状态之间的实际转换。
  *
- * @return true if transition is complete
+ * @return 转换完成返回true
  */
-template <typename T>
-TransitionData<T> FSM_State_Passive<T>::testTransition() {
-  this->transitionData.done = true;
-  return this->transitionData;
+template<typename T>
+TransitionData<T> FSM_State_Passive<T>::testTransition()
+{
+    this->transitionData.done = true;
+    return this->transitionData;
 }
 
 /**
- * Manages which states can be transitioned into either by the user
- * commands or state event triggers.
+ * 管理可以通过用户命令或状态事件触发器转换为哪些状态
  *
- * @return the enumerated FSM state name to transition into
+ * @return 要转换到的枚举FSM状态名称
  */
-template <typename T>
-FSM_StateName FSM_State_Passive<T>::checkTransition() {
-  this->nextStateName = this->stateName;
-  iter++;
-
-  // Switch FSM control mode
-  switch ((int)this->_data->controlParameters->control_mode) {
-    case K_PASSIVE:  // normal c (0)
-      // Normal operation for state based transitions
-      break;
-
-    case K_JOINT_PD:
-      // Requested switch to joint PD control
-      this->nextStateName = FSM_StateName::JOINT_PD;
-      break;
-
-    case K_STAND_UP:
-      // Requested switch to joint PD control
-      this->nextStateName = FSM_StateName::STAND_UP;
-      break;
-
-    case K_RECOVERY_STAND:
-      // Requested switch to joint PD control
-      this->nextStateName = FSM_StateName::RECOVERY_STAND;
-      break;
-
-    default:
-      std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
-                << K_PASSIVE << " to "
-                << this->_data->controlParameters->control_mode << std::endl;
-  }
-
-  // Get the next state
-  return this->nextStateName;
+template<typename T>
+FSM_StateName FSM_State_Passive<T>::checkTransition()
+{
+    this->nextStateName = this->stateName;
+    iter++;
+    
+    // 切换FSM控制模式
+    switch((int) this->_data->controlParameters->control_mode)
+    {
+        case K_PASSIVE:  // normal c (0)
+            // 基于状态的转换的正常操作
+            break;
+        
+        case K_JOINT_PD:
+            // 请求切换到关节 PD 控制
+            this->nextStateName = FSM_StateName::JOINT_PD;
+            break;
+        
+        case K_STAND_UP:
+            this->nextStateName = FSM_StateName::STAND_UP;
+            break;
+        
+        case K_RECOVERY_STAND:
+            this->nextStateName = FSM_StateName::RECOVERY_STAND;
+            break;
+        
+        default:
+            std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
+                      << K_PASSIVE << " to "
+                      << this->_data->controlParameters->control_mode << std::endl;
+    }
+    
+    // 得到下一个状态
+    return this->nextStateName;
 }
 
 /**
- * Handles the actual transition for the robot between states.
- * Returns true when the transition is completed.
+ * 处理机器人在状态之间的实际转换。
  *
- * @return true if transition is complete
+ * @return 转换完成返回true
  */
-template <typename T>
-TransitionData<T> FSM_State_Passive<T>::transition() {
-  // Finish Transition
-  this->transitionData.done = true;
-
-  // Return the transition data to the FSM
-  return this->transitionData;
+template<typename T>
+TransitionData<T> FSM_State_Passive<T>::transition()
+{
+    // 完成转换
+    this->transitionData.done = true;
+    
+    // 将转换数据返回到 FSM
+    return this->transitionData;
 }
 
 /**
- * Cleans up the state information on exiting the state.
+ * 清理退出状态时的状态信息
  */
-template <typename T>
-void FSM_State_Passive<T>::onExit() {
-  // Nothing to clean up when exiting
+template<typename T>
+void FSM_State_Passive<T>::onExit()
+{
+    // 退出时无需清理
 }
 
 // template class FSM_State_Passive<double>;
-template class FSM_State_Passive<float>;
+template
+class FSM_State_Passive<float>;
