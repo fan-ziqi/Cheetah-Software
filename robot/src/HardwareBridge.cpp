@@ -256,8 +256,11 @@ void MiniCheetahHardwareBridge::run()
 {
     //初始化通信模块，调用基类HardwareBridge::initCommon()函数，通过LCM通信模块订阅interface和interface_request两个主题，并创建LCM线程
     initCommon();
+
+#ifndef CYBERDOG
     //初始化MiniCheetah的spi和IMU
     initHardware();
+#endif
     
     if(_load_parameters_from_file)
     {
@@ -329,12 +332,16 @@ void MiniCheetahHardwareBridge::run()
     printf("[Hardware Bridge] Got all parameters, starting up!\n");
     
     //创建和配置RobotRunner对象（任务对象）
-    _robotRunner =
-            new RobotRunner(_controller, &taskManager, _robotParams.controller_dt, "robot-control");
+    _robotRunner = new RobotRunner(_controller, &taskManager, _robotParams.controller_dt, "robot-control");
     
     _robotRunner->driverCommand = &_gamepadCommand;
+#ifdef CYBERDOG
+    _robotRunner->cyberdogData = &_cyberdogData;
+    _robotRunner->cyberdogCmd = &_cyberdogCmd;
+#else
     _robotRunner->spiData = &_spiData;
     _robotRunner->spiCommand = &_spiCommand;
+#endif
     _robotRunner->robotType = RobotType::MINI_CHEETAH;
     _robotRunner->vectorNavData = &_vectorNavData;
     _robotRunner->controlParameters = &_robotParams;
@@ -347,7 +354,13 @@ void MiniCheetahHardwareBridge::run()
     
     // 启动状态任务
     statusTask.start();
-    
+
+#ifdef CYBERDOG
+    // 启动CYBERDOG线程
+    /* user code ctrl mode:1 for motor ctrl */
+    _cyberdogInterface = new CyberdogInterface(500);
+    _cyberdogThread = std::thread(&MiniCheetahHardwareBridge::runCyberdog, this);
+#else
     // 启动spi通信任务，spi通信负责传输控制命令和接收传感器数据
     PeriodicMemberFunction<MiniCheetahHardwareBridge> spiTask(
             &taskManager, .002, "spi", &MiniCheetahHardwareBridge::runSpi, this);
@@ -358,6 +371,7 @@ void MiniCheetahHardwareBridge::run()
     {
         _microstrainThread = std::thread(&MiniCheetahHardwareBridge::runMicrostrain, this);
     }
+#endif
     
     // 执行RobotRunner的任务，开启机器人控制器
     _robotRunner->start();
@@ -464,6 +478,7 @@ void Cheetah3HardwareBridge::initHardware()
     }
 }
 
+#ifndef CYBERDOG
 /*!
  * Run Mini Cheetah SPI
  */
@@ -479,6 +494,7 @@ void MiniCheetahHardwareBridge::runSpi()
     _spiLcm.publish("spi_data", data);
     _spiLcm.publish("spi_command", cmd);
 }
+#endif
 
 /*!
  * 运行lcm获取和发送信息
@@ -677,5 +693,31 @@ void Cheetah3HardwareBridge::run()
         // printf("joy %f\n", _robotRunner->driverCommand->leftStickAnalog[0]);
     }
 }
+
+void MiniCheetahHardwareBridge::runCyberdog()
+{
+    while(true)
+    {
+#if defined(CYBERDOG)
+        _cyberdogData = _cyberdogInterface->cyberdogData;
+        
+        //IMU
+        for(int i = 0; i < 3; i++)
+        {
+            _vectorNavData.accelerometer(i) = _cyberdogData.acc[i];
+        }
+        for(int i = 0; i < 4; i++)
+        {
+            _vectorNavData.quat(i) = _cyberdogData.quat[i];
+        }
+        for(int i = 0; i < 3; i++)
+        {
+            _vectorNavData.gyro(i) = _cyberdogData.omega[i];
+        }
+
+#endif
+    }
+}
+
 
 #endif

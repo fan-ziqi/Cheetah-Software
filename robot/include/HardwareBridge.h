@@ -27,6 +27,7 @@
 #include "ecat_command_t.hpp"
 #include "ecat_data_t.hpp"
 
+#include <CyberdogInterface.h>
 
 /*!
  * Interface between robot and hardware
@@ -43,23 +44,23 @@ public:
         _controller = robot_ctrl;
         _userControlParameters = robot_ctrl->getUserControlParameters();
     }
-
+    
     void prefaultStack();
     void setupScheduler();
     void initError(const char *reason, bool printErrno = false);
     void initCommon();
-
+    
     ~HardwareBridge()
     { delete _robotRunner; }
-
+    
     void handleGamepadLCM(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
                           const gamepad_lcmt *msg);
-
+    
     void handleInterfaceLCM();
     void handleControlParameter(const lcm::ReceiveBuffer *rbuf,
                                 const std::string &chan,
                                 const control_parameter_request_lcmt *msg);
-
+    
     void publishVisualizationLCM();
     void run_sbus();
 
@@ -72,12 +73,16 @@ protected:
     lcm::LCM _interfaceLCM;
     lcm::LCM _visualizationLCM;
     control_parameter_respones_lcmt _parameter_response_lcmt;
+#ifdef CYBERDOG
+    CyberdogData _cyberdogData;
+    CyberdogCmd _cyberdogCmd;
+#else
     SpiData _spiData;
     SpiCommand _spiCommand;
-
+#endif
     TiBoardCommand _tiBoardCommand[4];
     TiBoardData _tiBoardData[4];
-
+    
     bool _firstRun = true;
     RobotRunner *_robotRunner = nullptr;
     RobotControlParameters _robotParams;
@@ -86,7 +91,7 @@ protected:
     volatile bool _interfaceLcmQuit = false;
     RobotController *_controller = nullptr;
     ControlParameters *_userControlParameters = nullptr;
-
+    
     int _port;
 };
 
@@ -97,7 +102,12 @@ class MiniCheetahHardwareBridge : public HardwareBridge
 {
 public:
     MiniCheetahHardwareBridge(RobotController *rc, bool load_parameters_from_file);
+
+#ifdef CYBERDOG
+    void runCyberdog();
+#else
     void runSpi();
+#endif
     void initHardware();
     void run();
     void runMicrostrain();
@@ -114,6 +124,10 @@ private:
     microstrain_lcmt _microstrainData;
     bool _microstrainInit = false;
     bool _load_parameters_from_file;
+    
+    CyberdogInterface *_cyberdogInterface = nullptr;
+    std::thread _cyberdogThread;
+    
 };
 
 class Cheetah3HardwareBridge : public HardwareBridge

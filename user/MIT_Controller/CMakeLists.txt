@@ -14,10 +14,11 @@ include_directories(${CMAKE_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 
 file(GLOB_RECURSE sources
-"./*.cpp"
-"FSM_States/*.cpp" 
-"Controllers/BalanceController/*.cpp" 
-"Controllers/convexMPC/*.cpp")
+        "./*.cpp"
+        "FSM_States/*.cpp"
+        "Controllers/BalanceController/*.cpp"
+        "Controllers/convexMPC/*.cpp"
+        )
 
 add_subdirectory(Controllers/WBC)
 add_subdirectory(Controllers/WBC_Ctrl)
@@ -29,3 +30,4 @@ target_link_libraries(mit_ctrl dynacore_param_handler qpOASES)
 target_link_libraries(mit_ctrl Goldfarb_Optimizer osqp)
 target_link_libraries(mit_ctrl WBC_Ctrl)
 target_link_libraries(mit_ctrl VisionMPC)
+

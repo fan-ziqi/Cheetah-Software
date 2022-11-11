@@ -4,22 +4,34 @@
 #include <RobotController.h>
 #include "JPosUserParameters.h"
 
-class JPos_Controller:public RobotController{
-  public:
-    JPos_Controller():RobotController(),_jpos_ini(cheetah::num_act_joint){
-    _jpos_ini.setZero();
+//JPos_Controller继承于RobotController类
+class JPos_Controller : public RobotController
+{
+public:
+    JPos_Controller() : RobotController(), _jpos_ini(cheetah::num_act_joint)
+    {
+        _jpos_ini.setZero();
     }
-    virtual ~JPos_Controller(){}
-
-    virtual void initializeController(){}
+    
+    virtual ~JPos_Controller()
+    {}
+    
+    virtual void initializeController()
+    {}
+    
     virtual void runController();
-    virtual void updateVisualization(){}
-    virtual ControlParameters* getUserControlParameters() {
-      return &userParameters;
+    
+    virtual void updateVisualization()
+    {}
+    
+    virtual ControlParameters *getUserControlParameters()
+    {
+        return &userParameters;
     }
-  protected:
+
+protected:
     DVec<float> _jpos_ini;
-  JPosUserParameters userParameters;
+    JPosUserParameters userParameters;
 };
 
 #endif

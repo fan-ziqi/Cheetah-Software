@@ -7,6 +7,8 @@ add_subdirectory(qpOASES)
 add_subdirectory(lord_imu)
 add_subdirectory(SOEM)
 
-if(CMAKE_SYSTEM_NAME MATCHES Linux)
-add_subdirectory(vectornav)
-endif()
+if (CMAKE_SYSTEM_NAME MATCHES Linux)
+    add_subdirectory(vectornav)
+endif ()
+
+add_subdirectory(cyberdog_motor_sdk)

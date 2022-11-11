@@ -184,8 +184,7 @@ void RobotRunner::run()
     {
         for(int joint = 0; joint < 3; joint++)
         {
-            cheetahMainVisualization->q[leg * 3 + joint] =
-                    _legController->datas[leg].q[joint];
+            cheetahMainVisualization->q[leg * 3 + joint] = _legController->datas[leg].q[joint];
         }
     }
     cheetahMainVisualization->p.setZero();
@@ -204,7 +203,11 @@ void RobotRunner::setupStep()
     // 选择机型、更新数据
     if(robotType == RobotType::MINI_CHEETAH)
     {
+#ifdef CYBERDOG
+        _legController->updateData(cyberdogData);
+#else
         _legController->updateData(spiData);
+#endif
     }
     else if(robotType == RobotType::CHEETAH_3)
     {
@@ -253,7 +256,11 @@ void RobotRunner::finalizeStep()
     //选择机型，发布命令
     if(robotType == RobotType::MINI_CHEETAH)
     {
+#ifdef CYBERDOG
+        _legController->updateCommand(cyberdogCmd);
+#else
         _legController->updateCommand(spiCommand);
+#endif
     }
     else if(robotType == RobotType::CHEETAH_3)
     {
@@ -263,6 +270,8 @@ void RobotRunner::finalizeStep()
     {
         assert(false);
     }
+    
+    // 设置LCM
     _legController->setLcm(&leg_control_data_lcm, &leg_control_command_lcm);
     _stateEstimate.setLcm(state_estimator_lcm);
     
