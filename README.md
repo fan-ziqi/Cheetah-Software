@@ -1,36 +1,33 @@
-## Cheetah-Software
-This repository contains the Robot and Simulation software project.  For a getting started guide, see the documentation folder.
+# Cheetah-Software部署
 
-The common folder contains the common library with dynamics and utilities
-The resources folder will contain data files, like CAD of the robot used for the visualization
-The robot folder will contain the robot program
-The sim folder will contain the simulation program. It is the only program which depends on QT.
-The third-party will contain *small* third party libraries that we have modified. This should just be libsoem for Cheetah 3, which Pat modified at one point.
+环境：Ubuntu20.04
 
-
+# 安装依赖
 
 安装依赖
 
-```
+```bash
 sudo apt install mesa-common-dev freeglut3-dev libblas-dev liblapack-dev libeigen3-dev
+```
+
+拷贝eigen3库
+
+```bash
 sudo cp -r /usr/include/eigen3  /usr/local/include/eigen3
 ```
 
-
-
 安装JAVA（**需要在安装LCM前安装JAVA保证后续链接成功**）：
 
-```text
+```bash
 sudo apt install default-jdk
 ```
 
 安装LCM实时通信库：
 
-```text
+```bash
 git clone https://github.com/lcm-proj/lcm.git 
 cd lcm 
-mkdir build 
-cd build 
+mkdir build && cd build
 cmake .. 
 make 
 sudo make install 
@@ -39,118 +36,88 @@ sudo ldconfig
 
 安装QT，安装完成后修改`script/find_qt_path.sh`中的对应路径
 
+# 下载代码并生成Makefile
 
-
-## Build
-
-To build all code:
+```bash
+git clone https://github.com/mit-biomimetics/Cheetah-Software.git
+cd Cheetah-Software
+mkdir build && cd build
+cmake .. # there are still some warnings here
+./../scripts/make_types.sh # you may see an error like `rm: cannot remove...` but this is okay
 ```
-mkdir build
-cd build
-cmake ..
-./../scripts/make_types.sh
+
+会遇到如下错误
+
+ ```bash
+Cloning into 'googletest-src'...
+fatal: invalid reference: master
+CMake Error at googletest-download/googletest-download-prefix/tmp/googletest-download-gitclone.cmake:40 (message):
+Failed to checkout tag: 'master'
+ ```
+
+将`common/Cmakelist.txt`第30行`master`改成`main`即可
+
+# 编译
+
+```bash
 make -j4
 ```
 
-`cmake ..`这一步出错，`Cloning into 'googletest-src'...
-fatal: invalid reference: master
-CMake Error at googletest-download/googletest-download-prefix/tmp/googletest-download-gitclone.cmake:40 (message):
-  Failed to checkout tag: 'master'`，将`common/Cmakelist.txt`第30行`master`改成`main`
+编译会出现错误
 
+1. ```bash
+   error: ‘char* __builtin_strncpy(char*, const char*, long unsigned int)’ specified bound 2056 equals destination size [-Werror=stringop-truncation]
+   ```
 
+   将`Cmakelist.txt`里面的两个-Werror删掉
 
-编译出现错误` error: ‘char* __builtin_strncpy(char*, const char*, long unsigned int)’ specified bound 2056 equals destination size [-Werror=stringop-truncation]`，将`Cmakelist.txt`里面的两个-Werror删掉
+2. 提示缺少stropts.h文件
 
+   ```bash
+   cd /usr/include
+   sudo touch stropts.h
+   ```
 
+3. ```bash
+   error: ‘ioctl’ was not declared in this scope
+   ```
 
-提示缺少stropts.h文件
+   修改`robot\src\rt\rt_serial.cpp`
 
+   ```cpp
+   #define termios asmtermios
+   
+   //#include <asm/termios.h>
+   #include<asm/ioctls.h>
+   #include<asm/termbits.h>
+   
+   #undef termios
+   
+   #include<sys/ioctl.h>
+   ```
+
+重新编译
+
+```bash
+make -j4
 ```
-cd /usr/include
-sudo touch stropts.h
-```
 
+# 测试
 
+运行`common/test-common`进行测试
 
-提示`error: ‘ioctl’ was not declared in this scope`，修改`robot\src\rt\rt_serial.cpp`
+运行`sim/sim`启动模拟器
 
-```
-#define termios asmtermios
-
-//#include <asm/termios.h>
-#include<asm/ioctls.h>
-#include<asm/termbits.h>
-
-#undef termios
-
-#include<sys/ioctl.h>
-```
-
-
-
-If you are building code on your computer that you would like to copy over to the mini cheetah, you must replace the cmake command with
-
-```
-cmake -DMINI_CHEETAH_BUILD=TRUE
-```
-otherwise it will not work.  If you are building mini cheetah code one the mini cheetah computer, you do not need to do this.
-
-This build process builds the common library, robot code, and simulator. If you just change robot code, you can simply run `make -j4` again. If you change LCM types, you'll need to run `cmake ..; make -j4`. This automatically runs `make_types.sh`.
-
-To test the common library, run `common/test-common`. To run the robot code, run `robot/robot`. To run the simulator, run `sim/sim`.
-
-
-
-wsl bug`QOpenGLWidget: Failed to make context current`，修改bashrc
+如果在使用WSL，提示`QOpenGLWidget: Failed to make context current`，需要修改`.bashrc`
 
 ```
 export LIBGL_ALWAYS_SOFTWARE=1
 unset LIBGL_ALWAYS_INDIRECT
 ```
 
+# 手柄
 
+使用Logitech F310手柄，手柄背面的模式应选择“X”，并重新连接；正面靠近模式按钮的LED应该熄灭。
 
-Part of this build process will automatically download the gtest software testing framework and sets it up. After it is done building, it will produce a `libbiomimetics.a` static library and an executable `test-common`.  Run the tests with `common/test-common`. This output should hopefully end with
+# 移植到Cyberdog
 
-```
-[----------] Global test environment tear-down
-[==========] 18 tests from 3 test cases ran. (0 ms total)
-[  PASSED  ] 18 tests.
-```
-## Run simulator
-To run the simulator:
-1. Open the control board
-```
-./sim/sim
-```
-2. In the another command window, run the robot control code
-```
-./user/${controller_folder}/${controller_name} ${robot_name} ${target_system}
-```
-Example)
-```
-./user/JPos_Controller/jpos_ctrl 3 s
-```
-3: Cheetah 3, m: Mini Cheetah
-s: simulation, r: robot
-
-## Run Mini cheetah
-1. Create build folder `mkdir mc-build`
-2. Build as mini cheetah executable `cd mc-build; cmake -DMINI_CHEETAH_BUILD=TRUE ..; make -j`
-3. Connect to mini cheetah over ethernet, verify you can ssh in
-4. Copy program to mini cheetah with `../scripts/send_to_mini_cheetah.sh`
-5. ssh into the mini cheetah `ssh user@10.0.0.34`
-6. Enter the robot program folder `cd robot-software-....`
-7. Run robot code `./run_mc.sh` 
-
-
-
-## Dependencies:
-- Qt 5.10 - https://www.qt.io/download-qt-installer
-- LCM - https://lcm-proj.github.io/ (Please make it sure that you have a java to let lcm compile java-extension together)
-- Eigen - http://eigen.tuxfamily.org
-- `mesa-common-dev`
-- `freeglut3-dev`
-- `libblas-dev liblapack-dev`
-
-To use Ipopt, use CMake Ipopt option. Ex) cmake -DIPOPT_OPTION=ON ..
