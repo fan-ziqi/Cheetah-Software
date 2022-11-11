@@ -28,6 +28,7 @@ void MIT_Controller::initializeController()
  */
 void MIT_Controller::runController()
 {
+//    printf("MIT_Controller::runController()\r\n");
     // 查找当前步态计划
     _gaitScheduler->step();
     

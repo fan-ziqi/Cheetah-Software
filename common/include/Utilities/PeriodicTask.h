@@ -29,28 +29,28 @@ public:
     virtual void init() = 0;
     virtual void run() = 0;
     virtual void cleanup() = 0;
-
+    
     virtual ~PeriodicTask()
     { stop(); }
-
+    
     /*!
      * Get the desired period for the task
      */
     float getPeriod()
     { return _period; }
-
+    
     /*!
      * Get how long the most recent run took
      */
     float getRuntime()
     { return _lastRuntime; }
-
+    
     /*!
      * Get the maximum time in between runs
      */
     float getMaxPeriod()
     { return _maxPeriod; }
-
+    
     /*!
      * Get the maximum time it took for a run
      */
@@ -59,7 +59,7 @@ public:
 
 private:
     void loopFunction();
-
+    
     float _period;
     volatile bool _running = false;
     float _lastRuntime = 0;
@@ -97,16 +97,16 @@ public:
                      std::string name, void (*function)())
             : PeriodicTask(taskManager, period, name), _function(function)
     {}
-
+    
     void cleanup()
     {}
-
+    
     void init()
     {}
-
+    
     void run()
     { _function(); }
-
+    
     ~PeriodicFunction()
     { stop(); }
 
@@ -123,16 +123,16 @@ public:
     PrintTaskStatus(PeriodicTaskManager *tm, float period)
             : PeriodicTask(tm, period, "print-tasks"), _tm(tm)
     {}
-
+    
     void run() override
     {
         // DH: Disable printing
         //_tm->printStatus();
     }
-
+    
     void init() override
     {}
-
+    
     void cleanup() override
     {}
 
@@ -153,13 +153,13 @@ public:
               _function(function),
               _obj(obj)
     {}
-
+    
     void cleanup()
     {}
-
+    
     void init()
     {}
-
+    
     void run()
     { (_obj->*_function)(); }
 

@@ -27,14 +27,12 @@ public:
     {};
     
     CyberdogData cyberdogData;
+    CyberdogCmd cyberdogCmd;
 
 
 private:
     bool first_run = true;
     long long count = 0;
-    float init_q[12];
-    float target1_q[3] = {0 / 57.3, 80 / 57.3, -135 / 57.3};
-    float target2_q[3] = {0 / 57.3, 45 / 57.3, -90 / 57.3};
     
     void UserCode();
 };

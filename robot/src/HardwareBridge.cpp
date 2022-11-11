@@ -47,6 +47,7 @@ void HardwareBridge::initCommon()
     prefaultStack();
     printf("[HardwareBridge] Init scheduler\n");
     setupScheduler();
+    
     if(!_interfaceLCM.good())
     {
         initError("_interfaceLCM failed to initialize\n", false);
@@ -58,6 +59,7 @@ void HardwareBridge::initCommon()
     
     printf("[HardwareBridge] Start interface LCM handler\n");
     _interfaceLcmThread = std::thread(&HardwareBridge::handleInterfaceLCM, this);
+    
 }
 
 /*!
@@ -375,23 +377,27 @@ void MiniCheetahHardwareBridge::run()
     
     // 执行RobotRunner的任务，开启机器人控制器
     _robotRunner->start();
-    
+
+#ifndef CYBERDOG
     // 启动可视化数据LCM通信任务
     PeriodicMemberFunction<MiniCheetahHardwareBridge> visualizationLCMTask(
             &taskManager, .0167, "lcm-vis",
             &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
     visualizationLCMTask.start();
-    
+
     // 启动遥控器指令接收任务
     _port = init_sbus(false);  // Not Simulation
     PeriodicMemberFunction<HardwareBridge> sbusTask(
-            &taskManager, .005, "rc_controller", &HardwareBridge::run_sbus, this);
+            &taskManager, .005, "rc_controller",
+            &HardwareBridge::run_sbus, this);
     sbusTask.start();
-    
+
     // 启动惯性导航日志任务
     PeriodicMemberFunction<MiniCheetahHardwareBridge> microstrainLogger(
-            &taskManager, .001, "microstrain-logger", &MiniCheetahHardwareBridge::logMicrostrain, this);
+            &taskManager, .001, "microstrain-logger",
+            &MiniCheetahHardwareBridge::logMicrostrain, this);
     microstrainLogger.start();
+#endif
     
     //每隔1秒循环
     for(;;)
@@ -700,6 +706,7 @@ void MiniCheetahHardwareBridge::runCyberdog()
     {
 #if defined(CYBERDOG)
         _cyberdogData = _cyberdogInterface->cyberdogData;
+        _cyberdogCmd = _cyberdogInterface->cyberdogCmd;
         
         //IMU
         for(int i = 0; i < 3; i++)

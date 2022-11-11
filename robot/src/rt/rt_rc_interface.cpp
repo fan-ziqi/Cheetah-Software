@@ -51,7 +51,7 @@ void sbus_packet_complete()
     
     int selected_mode = 0;
     
-    switch (estop_switch)
+    switch(estop_switch)
     {
         
         case SWITCH_UP: // ESTOP
@@ -66,56 +66,56 @@ void sbus_packet_complete()
             selected_mode = RC_mode::LOCOMOTION; // locomotion by default
             
             // stand mode
-            if (left_select == SWITCH_UP && right_select == SWITCH_UP)
+            if(left_select == SWITCH_UP && right_select == SWITCH_UP)
             {
                 selected_mode = RC_mode::QP_STAND;
             }
             
-            if (backflip_prep_edge_trigger.trigger(mode_selection_switch)
-                && mode_selection_switch == SWITCH_MIDDLE)
+            if(backflip_prep_edge_trigger.trigger(mode_selection_switch)
+               && mode_selection_switch == SWITCH_MIDDLE)
             {
                 initial_mode_go_switch = mode_go_switch;
             }
             
             // Experiment mode (two leg stance, vision, ...)
-            if (experiment_prep_edge_trigger.trigger(mode_selection_switch)
-                && mode_selection_switch == SWITCH_DOWN)
+            if(experiment_prep_edge_trigger.trigger(mode_selection_switch)
+               && mode_selection_switch == SWITCH_DOWN)
             {
                 initial_mode_go_switch = mode_go_switch;
             }
             
             
             // backflip
-            if (mode_selection_switch == SWITCH_MIDDLE)
+            if(mode_selection_switch == SWITCH_MIDDLE)
             {
                 selected_mode = RC_mode::BACKFLIP_PRE;
                 
-                if (mode_go_switch == SWITCH_DOWN && initial_mode_go_switch != SWITCH_DOWN)
+                if(mode_go_switch == SWITCH_DOWN && initial_mode_go_switch != SWITCH_DOWN)
                 {
                     selected_mode = RC_mode::BACKFLIP;
                 }
-                else if (mode_go_switch == SWITCH_UP)
+                else if(mode_go_switch == SWITCH_UP)
                 {
                     initial_mode_go_switch = SWITCH_UP;
                 }
             } // Experiment Mode
-            else if (mode_selection_switch == SWITCH_DOWN)
+            else if(mode_selection_switch == SWITCH_DOWN)
             {
                 int mode_id = left_select * 3 + right_select;
                 
-                if (mode_id == 0)
+                if(mode_id == 0)
                 { // Two leg stance
                     selected_mode = RC_mode::TWO_LEG_STANCE_PRE;
-                    if (mode_go_switch == SWITCH_DOWN && initial_mode_go_switch != SWITCH_DOWN)
+                    if(mode_go_switch == SWITCH_DOWN && initial_mode_go_switch != SWITCH_DOWN)
                     {
                         selected_mode = RC_mode::TWO_LEG_STANCE;
                     }
-                    else if (mode_go_switch == SWITCH_UP)
+                    else if(mode_go_switch == SWITCH_UP)
                     {
                         initial_mode_go_switch = SWITCH_UP;
                     }
                 }
-                else if (mode_id == 1)
+                else if(mode_id == 1)
                 { // Vision
                     selected_mode = RC_mode::VISION;
                 }
@@ -137,14 +137,14 @@ void sbus_packet_complete()
             
             
             // Deadband
-            for (int i(0); i < 2; ++i)
+            for(int i(0); i < 2; ++i)
             {
                 data.left_stick[i] = deadband(data.left_stick[i], 0.1, -1., 1.);
                 data.right_stick[i] = deadband(data.right_stick[i], 0.1, -1., 1.);
             }
             
-            if (selected_mode == RC_mode::LOCOMOTION
-                || selected_mode == RC_mode::VISION)
+            if(selected_mode == RC_mode::LOCOMOTION ||
+               selected_mode == RC_mode::VISION)
             {
                 rc_control.variable[0] = gait_table[mode_id];
                 //rc_control.v_des[0] = v_scale * data.left_stick[1] * 0.5;
@@ -162,8 +162,8 @@ void sbus_packet_complete()
                 //rc_control.omega_des[2] = -v_scale * data.right_stick[0];
                 
             }
-            else if (selected_mode == RC_mode::QP_STAND ||
-                     selected_mode == RC_mode::TWO_LEG_STANCE)
+            else if(selected_mode == RC_mode::QP_STAND ||
+                    selected_mode == RC_mode::TWO_LEG_STANCE)
             {
                 //rc_control.rpy_des[0] = data.left_stick[0] * 1.4;
                 //rc_control.rpy_des[1] = data.right_stick[1] * 0.46;
@@ -183,9 +183,9 @@ void sbus_packet_complete()
     }
     
     bool trigger = mode_edge_trigger.trigger(selected_mode);
-    if (trigger || selected_mode == RC_mode::OFF || selected_mode == RC_mode::RECOVERY_STAND)
+    if(trigger || selected_mode == RC_mode::OFF || selected_mode == RC_mode::RECOVERY_STAND)
     {
-        if (trigger)
+        if(trigger)
         {
             printf("MODE TRIGGER!\n");
         }
@@ -202,7 +202,7 @@ void *v_memcpy(void *dest, volatile void *src, size_t n)
 
 float deadband(float command, float deadbandRegion, float minVal, float maxVal)
 {
-    if (command < deadbandRegion && command > -deadbandRegion)
+    if(command < deadbandRegion && command > -deadbandRegion)
     {
         return 0.0;
     }

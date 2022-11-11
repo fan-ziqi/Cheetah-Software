@@ -29,7 +29,6 @@ RobotRunner::RobotRunner(RobotController *robot_ctrl,
         PeriodicTask(manager, period, name),//添加任务
         _lcm(getLcmUrl(255))
 {
-    
     _robot_ctrl = robot_ctrl;
 }
 
@@ -64,12 +63,11 @@ void RobotRunner::init()
     
     memset(&rc_control, 0, sizeof(rc_control_settings));
     // 初始化DesiredStateCommand对象（所需的状态命令）
-    _desiredStateCommand =
-            new DesiredStateCommand<float>(driverCommand,
-                                           &rc_control,
-                                           controlParameters,
-                                           &_stateEstimate,
-                                           controlParameters->controller_dt);
+    _desiredStateCommand = new DesiredStateCommand<float>(driverCommand,
+                                                          &rc_control,
+                                                          controlParameters,
+                                                          &_stateEstimate,
+                                                          controlParameters->controller_dt);
     
     // 控制器初始化
     _robot_ctrl->_model = &_model; //模型
@@ -270,15 +268,17 @@ void RobotRunner::finalizeStep()
     {
         assert(false);
     }
-    
+
+#ifndef CYBERDOG
     // 设置LCM
     _legController->setLcm(&leg_control_data_lcm, &leg_control_command_lcm);
     _stateEstimate.setLcm(state_estimator_lcm);
-    
+
     // 发布主题
     _lcm.publish("leg_control_command", &leg_control_command_lcm);
     _lcm.publish("leg_control_data", &leg_control_data_lcm);
     _lcm.publish("state_estimator", &state_estimator_lcm);
+#endif
     _iterations++;
 }
 
