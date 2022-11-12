@@ -121,7 +121,7 @@ unset LIBGL_ALWAYS_INDIRECT
 
 # 移植到Cyberdog
 
-## 创建CyberdogInterface
+## 电机SDK创建CyberdogInterface
 
 创建`CyberdogInterface`类，继承`CustomInterface`类。由于父类的Robot_Data和Motor_Cmd都是protected，故需要：
 
@@ -167,13 +167,6 @@ CyberdogData *cyberdogData;
 CyberdogCmd *cyberdogCmd;
 ```
 
-在`robot/include/HardwareBridge.h`中的`HardwareBridge`类中添加与Cyberdog相关的数据结构体
-
-```cppp
-CyberdogData _cyberdogData;
-CyberdogCmd _cyberdogCmd;
-```
-
 控制器的入口在`user/MIT_Controller/main_helper.cpp`，其中执行了如下代码
 
 ```cpp
@@ -183,42 +176,45 @@ hw.run();
 
 上述代码中的`run()`函数在`robot/src/HardwareBridge.cpp`，注释掉所有与SPI、IMU相关的代码，
 
-将与Cyberdog相关的数据结构体指针赋给`_robotRunner`的对应指针
+在`MiniCheetahHardwareBridge`类中声明指针并在创建`run()`函数中实例化`CyberdogInterface`对象
 
 ```cpp
-_robotRunner->cyberdogData = &_cyberdogData;
-_robotRunner->cyberdogCmd = &_cyberdogCmd;
-```
-
-创建`CyberdogInterface`对象，并创建线程，执行`runCyberdog()`函数
-
-```cpp
+CyberdogInterface *_cyberdogInterface = nullptr;
 _cyberdogInterface = new CyberdogInterface(500);
-_cyberdogThread = std::thread(&MiniCheetahHardwareBridge::runCyberdog, this);
 ```
 
-其中`runCyberdog()`函数负责将_cyberdogInterface中的cyberdogData和cyberdogCmd地址传到前文定义的指针
+将`_cyberdogInterface`中定义的`cyberdogData`与`cyberdogCmd`结构体地址赋给`_robotRunner`的对应指针
 
 ```cpp
-void MiniCheetahHardwareBridge::runCyberdog()
+_robotRunner->cyberdogData = &_cyberdogInterface->cyberdogData;
+_robotRunner->cyberdogCmd = &_cyberdogInterface->cyberdogCmd;
+```
+
+创建线程，执行`CyberdogProcessData()`函数，对IMU数据进行处理
+
+```cpp
+_cyberdogThread = std::thread(&MiniCheetahHardwareBridge::CyberdogProcessData, this);
+```
+
+其中`CyberdogProcessData()`函数对IMU数据进行处理分发
+
+```cpp
+void MiniCheetahHardwareBridge::CyberdogProcessData()
 {
     while(true)
     {
-        _cyberdogData = _cyberdogInterface->cyberdogData;
-        _cyberdogCmd = _cyberdogInterface->cyberdogCmd;
-        
         //IMU
         for(int i = 0; i < 3; i++)
         {
-            _vectorNavData.accelerometer(i) = _cyberdogData.acc[i];
+            _vectorNavData.accelerometer(i) = _cyberdogInterface->cyberdogData.acc[i];
         }
         for(int i = 0; i < 4; i++)
         {
-            _vectorNavData.quat(i) = _cyberdogData.quat[i];
+            _vectorNavData.quat(i) = _cyberdogInterface->cyberdogData.quat[i];
         }
         for(int i = 0; i < 3; i++)
         {
-            _vectorNavData.gyro(i) = _cyberdogData.omega[i];
+            _vectorNavData.gyro(i) = _cyberdogInterface->cyberdogData.omega[i];
         }
     }
 }
@@ -243,13 +239,13 @@ setupStep(); // 更新来自机器人的数据到LegController对象
 finalizeStep(); // 将生成的leg controller控制命令数据更新到机器人各控制系统
 ```
 
-在函数`setupStep()`中，更新来自Cyberdog的数据
+在函数`setupStep()`中，更新来自Cyberdog的数据（这里的`cyberdogData`是`_cyberdogInterface`中的数据地址，由前文传入）
 
 ```cpp
 _legController->updateData(cyberdogData);
 ```
 
-重载`updateData()`函数，将前文从Cyberdog获得的数据传入datas数组中
+重载`updateData()`函数，将前文从Cyberdog获得的数据传入`datas`数组中
 
 ```cpp
 template<typename T>
@@ -282,7 +278,7 @@ void LegController<T>::updateData(const CyberdogData *cyberdogData)
 }
 ```
 
-在函数`finalizeStep()`中，向Cyberdog发送控制命令
+在函数`finalizeStep()`中，向Cyberdog发送控制命令（这里的`cyberdogCmd`是`_cyberdogInterface`中的数据地址，由前文传入）
 
 ```cpp
 _legController->updateCommand(cyberdogCmd);

@@ -259,7 +259,9 @@ void MiniCheetahHardwareBridge::run()
     //初始化通信模块，调用基类HardwareBridge::initCommon()函数，通过LCM通信模块订阅interface和interface_request两个主题，并创建LCM线程
     initCommon();
 
-#ifndef CYBERDOG
+#ifdef CYBERDOG
+    _cyberdogInterface = new CyberdogInterface(500);
+#else
     //初始化MiniCheetah的spi和IMU
     initHardware();
 #endif
@@ -338,8 +340,8 @@ void MiniCheetahHardwareBridge::run()
     
     _robotRunner->driverCommand = &_gamepadCommand;
 #ifdef CYBERDOG
-    _robotRunner->cyberdogData = &_cyberdogData;
-    _robotRunner->cyberdogCmd = &_cyberdogCmd;
+    _robotRunner->cyberdogData = &_cyberdogInterface->cyberdogData;
+    _robotRunner->cyberdogCmd = &_cyberdogInterface->cyberdogCmd;
 #else
     _robotRunner->spiData = &_spiData;
     _robotRunner->spiCommand = &_spiCommand;
@@ -358,10 +360,7 @@ void MiniCheetahHardwareBridge::run()
     statusTask.start();
 
 #ifdef CYBERDOG
-    // 启动CYBERDOG线程
-    /* user code ctrl mode:1 for motor ctrl */
-    _cyberdogInterface = new CyberdogInterface(500);
-    _cyberdogThread = std::thread(&MiniCheetahHardwareBridge::runCyberdog, this);
+    _cyberdogThread = std::thread(&MiniCheetahHardwareBridge::CyberdogProcessData, this);
 #else
     // 启动spi通信任务，spi通信负责传输控制命令和接收传感器数据
     PeriodicMemberFunction<MiniCheetahHardwareBridge> spiTask(
@@ -700,29 +699,23 @@ void Cheetah3HardwareBridge::run()
     }
 }
 
-void MiniCheetahHardwareBridge::runCyberdog()
+void MiniCheetahHardwareBridge::CyberdogProcessData()
 {
     while(true)
     {
-#if defined(CYBERDOG)
-        _cyberdogData = _cyberdogInterface->cyberdogData;
-        _cyberdogCmd = _cyberdogInterface->cyberdogCmd;
-        
         //IMU
         for(int i = 0; i < 3; i++)
         {
-            _vectorNavData.accelerometer(i) = _cyberdogData.acc[i];
+            _vectorNavData.accelerometer(i) = _cyberdogInterface->cyberdogData.acc[i];
         }
         for(int i = 0; i < 4; i++)
         {
-            _vectorNavData.quat(i) = _cyberdogData.quat[i];
+            _vectorNavData.quat(i) = _cyberdogInterface->cyberdogData.quat[i];
         }
         for(int i = 0; i < 3; i++)
         {
-            _vectorNavData.gyro(i) = _cyberdogData.omega[i];
+            _vectorNavData.gyro(i) = _cyberdogInterface->cyberdogData.omega[i];
         }
-
-#endif
     }
 }
 

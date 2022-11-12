@@ -73,13 +73,8 @@ protected:
     lcm::LCM _interfaceLCM;
     lcm::LCM _visualizationLCM;
     control_parameter_respones_lcmt _parameter_response_lcmt;
-#ifdef CYBERDOG
-    CyberdogData _cyberdogData;
-    CyberdogCmd _cyberdogCmd;
-#else
     SpiData _spiData;
     SpiCommand _spiCommand;
-#endif
     TiBoardCommand _tiBoardCommand[4];
     TiBoardData _tiBoardData[4];
     
@@ -104,7 +99,7 @@ public:
     MiniCheetahHardwareBridge(RobotController *rc, bool load_parameters_from_file);
 
 #ifdef CYBERDOG
-    void runCyberdog();
+    void CyberdogProcessData();
 #else
     void runSpi();
 #endif
@@ -124,9 +119,11 @@ private:
     microstrain_lcmt _microstrainData;
     bool _microstrainInit = false;
     bool _load_parameters_from_file;
-    
+
+#ifdef CYBERDOG
     CyberdogInterface *_cyberdogInterface = nullptr;
     std::thread _cyberdogThread;
+#endif
     
 };
 
