@@ -19,7 +19,7 @@ set(BUILD_TYPE_RELEASE TRUE)
 option(NO_SIM "Do not build simulator" OFF)
 
 if (MINI_CHEETAH_BUILD)
-    SET(THIS_COM "../")
+    SET(THIS_COM "./")
     CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
             ${CMAKE_BINARY_DIR}/Configuration.h)
     set(CMAKE_CXX_FLAGS "-O3 -no-pie -ggdb -Wall \
@@ -52,7 +52,7 @@ endif (MINI_CHEETAH_BUILD)
 
 set(CMAKE_CXX_STANDARD 14)
 
-#find_package(lcm)
+find_package(lcm)
 
 add_subdirectory(robot)
 add_subdirectory(third-party)
@@ -65,4 +65,4 @@ else (NO_SIM)
 endif ()
 
 add_subdirectory(user)
-add_subdirectory(rc_test)
+#add_subdirectory(rc_test)

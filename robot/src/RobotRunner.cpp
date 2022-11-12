@@ -23,6 +23,7 @@
 
 #endif
 
+
 /**
  * 构造函数 将运行框架加入任务管理器
  * 在hardwareBridge使用
@@ -50,7 +51,11 @@ void RobotRunner::init()
     if(robotType == RobotType::MINI_CHEETAH)
     {
 #ifdef CYBERDOG
+#ifdef USE_SIM
+        _quadruped = buildMiniCheetah<float>();
+#else
         _quadruped = buildCyberdog<float>();
+#endif
 #else
         _quadruped = buildMiniCheetah<float>();
 #endif
@@ -133,7 +138,13 @@ void RobotRunner::run()
     {
         //使能LegController对象
         _legController->setEnabled(true);
-        
+
+#ifdef NO_USE_RC
+        // 将use_rc设为0，跳过Estop()模式
+        controlParameters->use_rc = 0;
+#endif
+
+#ifndef USE_KEYBOARD
         //当遥控器控制时的rc_control.mode为0时，将LegController对象的控制命令数据清零
         if((rc_control.mode == 0) && controlParameters->use_rc)
         {
@@ -147,46 +158,49 @@ void RobotRunner::run()
         }
         else
         {
-            // 如果关节位置初始对象没有初始化时，将LegController对象的各个关节的kp和kd赋值
-            if(!_jpos_initializer->IsInitialized(_legController))
+#endif
+        // 如果关节位置初始对象没有初始化时，将LegController对象的各个关节的kp和kd赋值
+        if(!_jpos_initializer->IsInitialized(_legController))
+        {
+            Mat3<float> kpMat;
+            Mat3<float> kdMat;
+            // 更新jpos反馈增益
+            if(robotType == RobotType::MINI_CHEETAH)
             {
-                Mat3<float> kpMat;
-                Mat3<float> kdMat;
-                // 更新jpos反馈增益
-                if(robotType == RobotType::MINI_CHEETAH)
-                {
-                    kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
-                    kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
-                }
-                else if(robotType == RobotType::CHEETAH_3)
-                {
-                    kpMat << 50, 0, 0, 0, 50, 0, 0, 0, 50;
-                    kdMat << 1, 0, 0, 0, 1, 0, 0, 0, 1;
-                }
-                else
-                {
-                    assert(false);
-                }
-                
-                for(int leg = 0; leg < 4; leg++)
-                {
-                    _legController->commands[leg].kpJoint = kpMat;
-                    _legController->commands[leg].kdJoint = kdMat;
-                }
+                kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
+                kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
+            }
+            else if(robotType == RobotType::CHEETAH_3)
+            {
+                kpMat << 50, 0, 0, 0, 50, 0, 0, 0, 50;
+                kdMat << 1, 0, 0, 0, 1, 0, 0, 0, 1;
             }
             else
             {
-                //初始完成，执行机器人控制对象
-                
-                // 运行控制
-                _robot_ctrl->runController();
-                cheetahMainVisualization->p = _stateEstimate.position;
-                
-                // 更新可视化
-                _robot_ctrl->updateVisualization();
-                cheetahMainVisualization->p = _stateEstimate.position;
+                assert(false);
+            }
+            
+            for(int leg = 0; leg < 4; leg++)
+            {
+                _legController->commands[leg].kpJoint = kpMat;
+                _legController->commands[leg].kdJoint = kdMat;
             }
         }
+        else
+        {
+            //初始完成，执行机器人控制对象
+            
+            // 运行控制
+            _robot_ctrl->runController();
+            cheetahMainVisualization->p = _stateEstimate.position;
+            
+            // 更新可视化
+            _robot_ctrl->updateVisualization();
+            cheetahMainVisualization->p = _stateEstimate.position;
+        }
+#ifndef USE_KEYBOARD
+        }
+#endif
     }
     
     // 可视化 (之后会作为一个单独的函数)
@@ -214,7 +228,11 @@ void RobotRunner::setupStep()
     if(robotType == RobotType::MINI_CHEETAH)
     {
 #ifdef CYBERDOG
+#ifdef USE_SIM
+        _legController->updateData(spiData);
+#else
         _legController->updateData(cyberdogData);
+#endif
 #else
         _legController->updateData(spiData);
 #endif
@@ -267,7 +285,11 @@ void RobotRunner::finalizeStep()
     if(robotType == RobotType::MINI_CHEETAH)
     {
 #ifdef CYBERDOG
+#ifdef USE_SIM
+        _legController->updateCommand(spiCommand);
+#else
         _legController->updateCommand(cyberdogCmd);
+#endif
 #else
         _legController->updateCommand(spiCommand);
 #endif
@@ -285,7 +307,7 @@ void RobotRunner::finalizeStep()
     // 设置LCM
     _legController->setLcm(&leg_control_data_lcm, &leg_control_command_lcm);
     _stateEstimate.setLcm(state_estimator_lcm);
-
+    
     // 发布主题
     _lcm.publish("leg_control_command", &leg_control_command_lcm);
     _lcm.publish("leg_control_data", &leg_control_data_lcm);

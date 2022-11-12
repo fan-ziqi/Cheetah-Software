@@ -19,6 +19,8 @@
 #include "rt/rt_ethercat.h"
 #include "Utilities/Utilities_print.h"
 
+#include <termios.h>
+
 #define USE_MICROSTRAIN
 
 /*!
@@ -383,19 +385,27 @@ void MiniCheetahHardwareBridge::run()
             &taskManager, .0167, "lcm-vis",
             &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
     visualizationLCMTask.start();
+    
+    
+    
+    // 启动惯性导航日志任务
+    PeriodicMemberFunction<MiniCheetahHardwareBridge> microstrainLogger(
+            &taskManager, .001, "microstrain-logger",
+            &MiniCheetahHardwareBridge::logMicrostrain, this);
+    microstrainLogger.start();
+#endif
 
+#ifdef NO_USE_RC
     // 启动遥控器指令接收任务
     _port = init_sbus(false);  // Not Simulation
     PeriodicMemberFunction<HardwareBridge> sbusTask(
             &taskManager, .005, "rc_controller",
             &HardwareBridge::run_sbus, this);
     sbusTask.start();
+#endif
 
-    // 启动惯性导航日志任务
-    PeriodicMemberFunction<MiniCheetahHardwareBridge> microstrainLogger(
-            &taskManager, .001, "microstrain-logger",
-            &MiniCheetahHardwareBridge::logMicrostrain, this);
-    microstrainLogger.start();
+#ifdef USE_KEYBOARD
+    _keyboardThread = std::thread(&MiniCheetahHardwareBridge::run_keyboard, this);
 #endif
     
     //每隔1秒循环
@@ -419,6 +429,64 @@ void HardwareBridge::run_sbus()
             sbus_packet_complete();
         }
     }
+}
+
+extern rc_control_settings rc_control;
+
+int getch(void)
+{
+    int ch;
+    struct termios oldt;
+    struct termios newt;
+    
+    // Store old settings, and copy to new settings
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    
+    // Make required changes and apply the settings
+    newt.c_lflag &= ~(ICANON | ECHO);
+    newt.c_iflag |= IGNBRK;
+    newt.c_iflag &= ~(INLCR | ICRNL | IXON | IXOFF);
+    newt.c_lflag &= ~(ICANON | ECHO | ECHOK | ECHOE | ECHONL | ISIG | IEXTEN);
+    newt.c_cc[VMIN] = 1;
+    newt.c_cc[VTIME] = 0;
+    tcsetattr(fileno(stdin), TCSANOW, &newt);
+    
+    // Get the current character
+    ch = getchar();
+    
+    // Reapply old settings
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    
+    return ch;
+}
+
+char key(' ');
+
+void HardwareBridge::run_keyboard()
+{
+    while(1)
+    {
+//        printf("haha\r\n");
+//        key = getch();
+//        if(key == '0')
+//        {
+//            printf("%c\r\n", key);
+//            rc_control.mode = 0;
+//        }
+//        if(key == '1')
+//        {
+//            printf("%c\r\n", key);
+//            rc_control.mode = 1;
+//        }
+//        if(key == '3')
+//        {
+//            printf("%c\r\n", key);
+//            rc_control.mode = 3;
+//        }
+        usleep(5000);
+    }
+    
 }
 
 void MiniCheetahHardwareBridge::runMicrostrain()
@@ -483,7 +551,6 @@ void Cheetah3HardwareBridge::initHardware()
     }
 }
 
-#ifndef CYBERDOG
 /*!
  * Run Mini Cheetah SPI
  */
@@ -499,7 +566,6 @@ void MiniCheetahHardwareBridge::runSpi()
     _spiLcm.publish("spi_data", data);
     _spiLcm.publish("spi_command", cmd);
 }
-#endif
 
 /*!
  * 运行lcm获取和发送信息
@@ -764,6 +830,5 @@ void MiniCheetahHardwareBridge::CyberdogProcessData()
         }
     }
 }
-
 
 #endif

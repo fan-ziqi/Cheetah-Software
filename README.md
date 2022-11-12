@@ -527,7 +527,9 @@ $ ping 192.168.55.233 #通过type c线连接Cyberdog的Download接口后，确�
 $ ifconfig | grep -B 1 192.168.55.100 | grep "flags"| cut -d ':' -f1 #获取该ip对应网络设备，一般为usb0
 $ sudo ifconfig usb0 multicast #usb0替换为上文获取的168.55.100对应网络设备,并配为多播
 $ sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev usb0 #添加路由表，usb0对应替换
-$ mkdir build && cd build #进入sdk代码仓后
+下载sdk
+$ cd cyberdog_motor_sdk/
+$ mkdir build && cd build
 $ cmake ..
 $ make -j4
 $ ./Example_MotorCtrl
@@ -541,6 +543,9 @@ $ ./Example_MotorCtrl
 
 ```
 $ scp -r {sdk_path}/cyberdog_motor_sdk mi@192.168.55.1:/home/mi/ #sdk源码拷入应用板，密码123
+
+scp -r ~/ROS_Workspaces/Cheetah-Software/third-party/cyberdog_motor_sdk mi@192.168.55.1:/home/mi/Workspace
+
 $ ssh mi@192.168.55.1 #登录应用板
 mi@lubuntu:~$ cd /home/mi/cyberdog_motor_sdk
 mi@lubuntu:~$ mkdir build && cd build
@@ -572,12 +577,23 @@ docker run -it --rm --name cyberdog -v /home/fzq614/ROS_Workspaces/Cheetah-Softw
 
 ```
 $ cd ~/{sdk_path}/onboard-build
+
+cd ~/ROS_Workspaces/cyberdog_motor_sdk/onboard-build
+
 $ ssh root@192.168.55.233 "mkdir /mnt/UDISK/cyberdog_motor_sdk" #在运控板内创建文件夹
 $ scp libcyber_dog_motor_sdk.so  Example_MotorCtrl root@192.168.55.233:/mnt/UDISK/cyberdog_motor_sdk
+
+scp -r robot-software root@192.168.55.233:/mnt/UDISK/cyberdog_motor_sdk/
+
 $ ssh root@192.168.55.233
 root@TinaLinux:~# cd /mnt/UDISK/cyberdog_motor_sdk
-root@TinaLinux:~# export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk #设置so库路径变量
+root@TinaLinux:~# export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk/robot-software/build #设置so库路径变量
+
+ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk/robot-software/build"
+
 root@TinaLinux:~# ./Example_MotorCtrl  #通过“nohup ./Example_MotorCtrl &”可后台运行，退出ssh连接不受影响
+
+/mnt/UDISK/cyberdog_motor_sdk/robot-software/build/mit_ctrl m r f
 ```
 
 如何添加开机自启动:  
@@ -604,4 +620,9 @@ $ ssh root@192.168.55.233 "ps | grep -E 'manager|ctrl|imu_online' | grep -v grep
 $ ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/robot-software/build;/mnt/UDISK/manager /mnt/UDISK/ >> /mnt/UDISK/manager_log/manager.log 2>&1 &"
 # 重启运控板系统:
 $ ssh root@192.168.55.233 "reboot"
+
+
+ssh root@192.168.55.233 "ps | grep -E 'Example_MotorCtrl' | grep -v grep | awk '{print \$1}' | xargs kill -9"
+ssh root@192.168.55.233 "ps | grep -E 'manager|ctrl|imu_online' | grep -v grep | awk '{print \$1}' | xargs kill -9"
+ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/robot-software/build;/mnt/UDISK/manager /mnt/UDISK/ >> /mnt/UDISK/manager_log/manager.log 2>&1 &"
 ```
