@@ -61,7 +61,7 @@ add_subdirectory(common)
 if (NO_SIM)
 
 else (NO_SIM)
-    #  add_subdirectory(sim)
+    add_subdirectory(sim)
 endif ()
 
 add_subdirectory(user)

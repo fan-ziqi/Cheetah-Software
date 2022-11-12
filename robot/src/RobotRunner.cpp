@@ -187,7 +187,6 @@ void RobotRunner::run()
                 cheetahMainVisualization->p = _stateEstimate.position;
             }
         }
-        
     }
     
     // 可视化 (之后会作为一个单独的函数)

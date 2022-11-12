@@ -701,8 +701,54 @@ void Cheetah3HardwareBridge::run()
 
 void MiniCheetahHardwareBridge::CyberdogProcessData()
 {
+    long count = 0;
     while(true)
     {
+        count++;
+        if(count % 500000000 == 0)
+        {
+            count = 0;
+            printf("interval:---------%.4f-------------\n", _cyberdogInterface->cyberdogData.ctrl_topic_interval);
+            printf("rpy [3]:");
+            for(int i = 0; i < 3; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.rpy[i]);
+            printf("\nacc [3]:");
+            for(int i = 0; i < 3; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.acc[i]);
+            printf("\nquat[4]:");
+            for(int i = 0; i < 4; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.quat[i]);
+            printf("\nomeg[3]:");
+            for(int i = 0; i < 3; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.omega[i]);
+            printf("\nq  [12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.q[i]);
+            printf("\nqd [12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.qd[i]);
+            printf("\ntau[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.tau[i]);
+            printf("\nq_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.q_des[i]);
+            printf("\nqd_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.qd_des[i]);
+            printf("\nkp_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.kp_des[i]);
+            printf("\nkd_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.kd_des[i]);
+            printf("\ntau_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.tau_des[i]);
+            printf("\n\n");
+        }
+        
+        
         //IMU
         for(int i = 0; i < 3; i++)
         {
