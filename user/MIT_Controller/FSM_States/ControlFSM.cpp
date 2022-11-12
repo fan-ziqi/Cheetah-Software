@@ -95,12 +95,42 @@ void ControlFSM<T>::runFSM()
     
     // 为了安全操作，检查机器人状态
     operatingMode = safetyPreCheck();
+
+#ifdef NO_USE_RC
+    data.controlParameters->control_mode = K_RECOVERY_STAND;
+
+//    if(iter < 1000)
+//    {
+//        data.controlParameters->control_mode = K_PASSIVE;
+//    }
+//    else if(iter < 2000)
+//    {
+//        data.controlParameters->control_mode = K_RECOVERY_STAND;
+//    }
+//    else if(iter < 3000)
+//    {
+//        data.controlParameters->control_mode = K_BALANCE_STAND;
+//    }
+//    else if(iter < 4000)
+//    {
+//        data.controlParameters->control_mode = K_LOCOMOTION;
+//    }
+//    else if(iter < 5000)
+//    {
+//        data.controlParameters->control_mode = K_BALANCE_STAND;
+//    }
+//    else
+//    {
+//        data.controlParameters->control_mode = K_BACKFLIP;
+//    }
+#else
     
     // 是否使用遥控器
     if(data.controlParameters->use_rc)
     {
         // 设定控制模式
         int rc_mode = data._desiredStateCommand->rcCommand->mode;
+        
         if(rc_mode == RC_mode::RECOVERY_STAND)
         {
             data.controlParameters->control_mode = K_RECOVERY_STAND;
@@ -128,6 +158,8 @@ void ControlFSM<T>::runFSM()
         //data.controlParameters->control_mode = K_FRONTJUMP;
         //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
     }
+
+#endif
     
     // 如果操作模式是安全的，则运行机器人控制代码。下面为状态机
     if(operatingMode != FSM_OperatingMode::ESTOP)
@@ -270,29 +302,41 @@ FSM_State<T> *ControlFSM<T>::getNextState(FSM_StateName stateName)
     // 通过枚举状态名称选择正确的FSM状态
     switch(stateName)
     {
-        case FSM_StateName::INVALID:return statesList.invalid;
+        case FSM_StateName::INVALID:
+            return statesList.invalid;
         
-        case FSM_StateName::PASSIVE:return statesList.passive;
+        case FSM_StateName::PASSIVE:
+            return statesList.passive;
         
-        case FSM_StateName::JOINT_PD:return statesList.jointPD;
+        case FSM_StateName::JOINT_PD:
+            return statesList.jointPD;
         
-        case FSM_StateName::IMPEDANCE_CONTROL:return statesList.impedanceControl;
+        case FSM_StateName::IMPEDANCE_CONTROL:
+            return statesList.impedanceControl;
         
-        case FSM_StateName::STAND_UP:return statesList.standUp;
+        case FSM_StateName::STAND_UP:
+            return statesList.standUp;
         
-        case FSM_StateName::BALANCE_STAND:return statesList.balanceStand;
+        case FSM_StateName::BALANCE_STAND:
+            return statesList.balanceStand;
         
-        case FSM_StateName::LOCOMOTION:return statesList.locomotion;
+        case FSM_StateName::LOCOMOTION:
+            return statesList.locomotion;
         
-        case FSM_StateName::RECOVERY_STAND:return statesList.recoveryStand;
+        case FSM_StateName::RECOVERY_STAND:
+            return statesList.recoveryStand;
         
-        case FSM_StateName::VISION:return statesList.vision;
+        case FSM_StateName::VISION:
+            return statesList.vision;
         
-        case FSM_StateName::BACKFLIP:return statesList.backflip;
+        case FSM_StateName::BACKFLIP:
+            return statesList.backflip;
         
-        case FSM_StateName::FRONTJUMP:return statesList.frontJump;
+        case FSM_StateName::FRONTJUMP:
+            return statesList.frontJump;
         
-        default:return statesList.invalid;
+        default:
+            return statesList.invalid;
     }
 }
 

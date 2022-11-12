@@ -86,8 +86,6 @@ void LegController<T>::edampCommand(RobotType robot, T gain)
     }
 }
 
-#ifdef CYBERDOG
-
 /*!
  * 从Cyberdog更新腿部信息
  */
@@ -120,7 +118,6 @@ void LegController<T>::updateData(const CyberdogData *cyberdogData)
     }
 }
 
-#else
 /*!
  * 从SPIne卡更新腿部信息
  */
@@ -147,7 +144,6 @@ void LegController<T>::updateData(const SpiData *spiData)
         datas[leg].v = datas[leg].J * datas[leg].qd;
     }
 }
-#endif
 
 /*!
  * 从TI卡更新腿部信息(cheetah3使用)
@@ -175,8 +171,6 @@ void LegController<T>::updateData(const TiBoardData *tiBoardData)
     }
 }
 
-
-#ifdef CYBERDOG
 
 /*!
  * 向Cyberdog发送腿部控制命令
@@ -231,8 +225,6 @@ void LegController<T>::updateCommand(CyberdogCmd *cyberdogCmd)
     }
 }
 
-
-#else
 /*!
  * 向SPIne板发送腿部控制命令
  */
@@ -287,8 +279,6 @@ void LegController<T>::updateCommand(SpiCommand *spiCommand)
         spiCommand->flags[leg] = _legsEnabled ? 1 : 0;
     }
 }
-
-#endif
 
 constexpr float CHEETAH_3_ZERO_OFFSET[4][3] = {{1.f, 4.f, 7.f},
                                                {2.f, 5.f, 8.f},

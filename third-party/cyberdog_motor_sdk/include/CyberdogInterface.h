@@ -9,6 +9,9 @@
 #include "cppTypes.h"
 
 #define CYBERDOG
+#define USE_SIM
+#define NO_USE_RC
+//#define USE_KEYBOARD
 
 /*!
  * Data from Cyberdog
