@@ -112,11 +112,11 @@ void LegController<T>::updateData(const CyberdogData *cyberdogData)
         
         // v 足端速度
         datas[leg].v = datas[leg].J * datas[leg].qd;
-        
-        // tau 电机扭矩
-        datas[leg].tauEstimate(0) = cyberdogData->tau[0 + leg * 3];
-        datas[leg].tauEstimate(1) = cyberdogData->tau[1 + leg * 3];
-        datas[leg].tauEstimate(2) = cyberdogData->tau[2 + leg * 3];
+
+//        // tau 电机扭矩
+//        datas[leg].tauEstimate(0) = cyberdogData->tau[0 + leg * 3];
+//        datas[leg].tauEstimate(1) = cyberdogData->tau[1 + leg * 3];
+//        datas[leg].tauEstimate(2) = cyberdogData->tau[2 + leg * 3];
     }
 }
 
@@ -221,13 +221,13 @@ void LegController<T>::updateCommand(CyberdogCmd *cyberdogCmd)
         cyberdogCmd->qd_des[0 + leg * 3] = commands[leg].qdDes(0);
         cyberdogCmd->qd_des[1 + leg * 3] = commands[leg].qdDes(1);
         cyberdogCmd->qd_des[2 + leg * 3] = commands[leg].qdDes(2);
-
-//        // 计算关节力矩的估计值 tauEstimate = tau +kp*(qDes-q)+kd*(qdDes-qd)
-//        // 等于足端受到的外界力产生的关节力加上关节模拟的关节刚度产生的关节力
-//        datas[leg].tauEstimate =
-//                legTorque +
-//                commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
-//                commands[leg].kdJoint * (commands[leg].qdDes - datas[leg].qd);
+        
+        // 计算关节力矩的估计值 tauEstimate = tau +kp*(qDes-q)+kd*(qdDes-qd)
+        // 等于足端受到的外界力产生的关节力加上关节模拟的关节刚度产生的关节力
+        datas[leg].tauEstimate =
+                legTorque +
+                commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
+                commands[leg].kdJoint * (commands[leg].qdDes - datas[leg].qd);
     }
 }
 

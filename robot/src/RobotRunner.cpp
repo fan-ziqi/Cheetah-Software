@@ -17,6 +17,12 @@
 #include "Controllers/PositionVelocityEstimator.h"
 //#include "rt/rt_interface_lcm.h"
 
+#ifdef CYBERDOG
+
+#include "Dynamics/CyberdogParams.h"
+
+#endif
+
 /**
  * 构造函数 将运行框架加入任务管理器
  * 在hardwareBridge使用
@@ -43,23 +49,30 @@ void RobotRunner::init()
     // 选择要构建的机器人类型，_quadruped里面存了与机器人相关的数据
     if(robotType == RobotType::MINI_CHEETAH)
     {
+#ifdef CYBERDOG
+        _quadruped = buildCyberdog<float>();
+#else
         _quadruped = buildMiniCheetah<float>();
+#endif
     }
     else
     {
         _quadruped = buildCheetah3<float>();
     }
     
-    // 初始化模型和机器人数据
-    _model = _quadruped.buildModel(); //机器人模型
-    _jpos_initializer = new JPosInitializer<float>(3., controlParameters->controller_dt); //初始化开机时腿的位置
+    // 初始化机器人模型
+    _model = _quadruped.buildModel();
+    // 初始化开机时腿的位置
+    _jpos_initializer = new JPosInitializer<float>(3., controlParameters->controller_dt);
     
-    // 始终初始化腿控制器和状态估计器
-    _legController = new LegController<float>(_quadruped); //初始化腿控制器
+    // 初始化腿控制器
+    _legController = new LegController<float>(_quadruped);
+    // 初始化状态估计器
     _stateEstimator = new StateEstimatorContainer<float>(
             cheaterState, vectorNavData, _legController->datas,
-            &_stateEstimate, controlParameters); //构造状态估计器 传入参数指针或值
-    initializeStateEstimator(false); //重置状态估计 在此文件的最后定义
+            &_stateEstimate, controlParameters);
+    // 重置状态估计
+    initializeStateEstimator(false);
     
     memset(&rc_control, 0, sizeof(rc_control_settings));
     // 初始化DesiredStateCommand对象（所需的状态命令）

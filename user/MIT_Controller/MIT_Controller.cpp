@@ -16,7 +16,7 @@ void MIT_Controller::initializeController()
     //_contactEstimator = new ContactEstimator<double>();
     ////_contactEstimator->initialize();
     
-    // 用所有需要的数据初始化控制FSM（数据从硬件桥->robotrunner->this）
+    // 用所有需要的数据初始化控制FSM（数据从硬件接口->robotrunner->this）
     _controlFSM = new ControlFSM<float>(_quadruped, _stateEstimator,
                                         _legController, _gaitScheduler,
                                         _desiredStateCommand, _controlParameters,

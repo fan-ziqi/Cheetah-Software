@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS "-O3")
 FIND_PACKAGE(lcm REQUIRED)
 
 file(GLOB_RECURSE sources src/*.c src/*.cpp)
-FILE(GLOB_RECURSE headers include/*.hpp)
+FILE(GLOB_RECURSE headers include/*.h include/*.hpp)
 
 include_directories("../../common/include/")
 
