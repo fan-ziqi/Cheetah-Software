@@ -117,7 +117,7 @@ void CustomInterface::Stop()
 
 void CustomInterface::motor_cmd_send()
 {
-    int sig[12] = {1, -1, -1, 1, -1, -1, 1, -1, -1, 1, -1, -1};
+    int sig[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     for(int i = 0; i < 12; i++)
     {
         _motor_ctrl.q_des[i] = motor_cmd.q_des[i] * sig[i];
@@ -144,7 +144,7 @@ void CustomInterface::handle_motor_data_LCM(const lcm::ReceiveBuffer *rbuf, cons
 {
     (void) rbuf;
     (void) chan;
-    int sig[12] = {1, -1, -1, 1, -1, -1, 1, -1, -1, 1, -1, -1};
+    int sig[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     for(int i = 0; i < 12; i++)
     {
         robot_data.q[i] = msg->q[i] * sig[i];

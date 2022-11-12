@@ -39,6 +39,7 @@ public:
     }
     
     void run_sbus();
+    void run_keyboard();
 
 private:
     PeriodicTaskManager taskManager;

@@ -27,8 +27,6 @@
 #include "ecat_command_t.hpp"
 #include "ecat_data_t.hpp"
 
-#include <CyberdogInterface.h>
-
 /*!
  * Interface between robot and hardware
  * 父类，抽象类
@@ -63,6 +61,8 @@ public:
     
     void publishVisualizationLCM();
     void run_sbus();
+    
+    void run_keyboard();
 
 protected:
     PeriodicTaskManager taskManager;
@@ -97,12 +97,9 @@ class MiniCheetahHardwareBridge : public HardwareBridge
 {
 public:
     MiniCheetahHardwareBridge(RobotController *rc, bool load_parameters_from_file);
-
-#ifdef CYBERDOG
+    
     void CyberdogProcessData();
-#else
     void runSpi();
-#endif
     void initHardware();
     void run();
     void runMicrostrain();
@@ -119,11 +116,10 @@ private:
     microstrain_lcmt _microstrainData;
     bool _microstrainInit = false;
     bool _load_parameters_from_file;
-
-#ifdef CYBERDOG
+    
     CyberdogInterface *_cyberdogInterface = nullptr;
     std::thread _cyberdogThread;
-#endif
+    std::thread _keyboardThread;
     
 };
 

@@ -84,13 +84,10 @@ public:
     
     void zeroCommand(); //腿部控制命令清零
     void edampCommand(RobotType robot, T gain);
-#ifdef CYBERDOG
     void updateData(const CyberdogData *cyberdogData);
     void updateCommand(CyberdogCmd *cyberdogCmd);
-#else
     void updateData(const SpiData *spiData);
     void updateCommand(SpiCommand *spiCommand);
-#endif
     void updateData(const TiBoardData *tiBoardData);
     void updateCommand(TiBoardCommand *tiBoardCommand);
     

@@ -27,8 +27,6 @@
 #include "RobotController.h"
 #include <lcm-cpp.hpp>
 
-#define CYBERDOG
-
 //RobotRunner运行器，是周期任务PeriodicTask的子类
 class RobotRunner : public PeriodicTask
 {
@@ -51,15 +49,14 @@ public:
     RobotType robotType;
     VectorNavData *vectorNavData;
     CheaterState<double> *cheaterState;
-#ifdef CYBERDOG
+    
     CyberdogData *cyberdogData;
     CyberdogCmd *cyberdogCmd;
-#endif
     SpiData *spiData;
     SpiCommand *spiCommand;
-    
     TiBoardCommand *tiBoardCommand;
     TiBoardData *tiBoardData;
+    
     RobotControlParameters *controlParameters;
     VisualizationData *visualizationData;
     CheetahVisualization *cheetahMainVisualization;
