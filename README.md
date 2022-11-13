@@ -1,5 +1,7 @@
 # Cheetah-Software部署到Cyberdog
 
+2022.11.13更新
+
 环境：Ubuntu20.04
 
 # 安装依赖
@@ -197,19 +199,64 @@ _robotRunner->cyberdogData = &_cyberdogInterface->cyberdogData;
 _robotRunner->cyberdogCmd = &_cyberdogInterface->cyberdogCmd;
 ```
 
-创建线程，执行`CyberdogProcessData()`函数，对IMU数据进行处理
+创建新线程，执行`CyberdogProcessData()`函数，对IMU数据进行处理
 
 ```cpp
 _cyberdogThread = std::thread(&MiniCheetahHardwareBridge::CyberdogProcessData, this);
 ```
 
-其中`CyberdogProcessData()`函数对IMU数据进行处理分发
+其中`CyberdogProcessData()`函数对IMU数据进行处理分发并进行数据显示
 
 ```cpp
 void MiniCheetahHardwareBridge::CyberdogProcessData()
 {
+    long count = 0;
     while(true)
     {
+        count++;
+        if(count % 100000000 == 0)
+        {
+            count = 0;
+            printf("interval:---------%.4f-------------\n", _cyberdogInterface->cyberdogData.ctrl_topic_interval);
+            printf("rpy [3]:");
+            for(int i = 0; i < 3; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.rpy[i]);
+            printf("\nacc [3]:");
+            for(int i = 0; i < 3; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.acc[i]);
+            printf("\nquat[4]:");
+            for(int i = 0; i < 4; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.quat[i]);
+            printf("\nomeg[3]:");
+            for(int i = 0; i < 3; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.omega[i]);
+            printf("\nq  [12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.q[i]);
+            printf("\nqd [12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.qd[i]);
+            printf("\ntau[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogData.tau[i]);
+            printf("\nq_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.q_des[i]);
+            printf("\nqd_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.qd_des[i]);
+            printf("\nkp_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.kp_des[i]);
+            printf("\nkd_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.kd_des[i]);
+            printf("\ntau_des[12]:");
+            for(int i = 0; i < 12; i++)
+                printf(" %.2f", _cyberdogInterface->cyberdogCmd.tau_des[i]);
+            printf("\n\n");
+        }
+        
         //IMU
         for(int i = 0; i < 3; i++)
         {
@@ -217,12 +264,18 @@ void MiniCheetahHardwareBridge::CyberdogProcessData()
         }
         for(int i = 0; i < 4; i++)
         {
-            _vectorNavData.quat(i) = _cyberdogInterface->cyberdogData.quat[i];
+            // 注意 Cyberdog SDK 的四元数顺序为 xyzw 需要转成 wxyz
+//            _vectorNavData.quat(i) = _cyberdogInterface->cyberdogData.quat[i];
+            _vectorNavData.quat[0] = _cyberdogInterface->cyberdogData.quat[1];
+            _vectorNavData.quat[1] = _cyberdogInterface->cyberdogData.quat[2];
+            _vectorNavData.quat[2] = _cyberdogInterface->cyberdogData.quat[3];
+            _vectorNavData.quat[3] = _cyberdogInterface->cyberdogData.quat[0];
         }
         for(int i = 0; i < 3; i++)
         {
             _vectorNavData.gyro(i) = _cyberdogInterface->cyberdogData.omega[i];
         }
+        usleep(5000);
     }
 }
 ```
@@ -312,7 +365,7 @@ Quadruped<T> buildCyberdog()
 }
 ```
 
-实例化`JPosInitializer`初始化腿位置会调用`_UpdateParam()`函数，进而读取`config/initial_jpos_ctrl.yaml`文件内的初始值`target_jpos`和`mid_jpos`，这里TODO
+实例化`JPosInitializer`初始化腿位置会调用`_UpdateParam()`函数，进而读取`config/initial_jpos_ctrl.yaml`文件内的初始值`target_jpos`和`mid_jpos`
 
 ```yaml
 target_jpos: [
@@ -366,10 +419,10 @@ void LegController<T>::updateData(const CyberdogData *cyberdogData)
         // v 足端速度
         datas[leg].v = datas[leg].J * datas[leg].qd;
         
-        // tau 电机扭矩
-        datas[leg].tauEstimate(0) = cyberdogData->tau[0 + leg * 3];
-        datas[leg].tauEstimate(1) = cyberdogData->tau[1 + leg * 3];
-        datas[leg].tauEstimate(2) = cyberdogData->tau[2 + leg * 3];
+//        // tau 电机扭矩
+//        datas[leg].tauEstimate(0) = cyberdogData->tau[0 + leg * 3];
+//        datas[leg].tauEstimate(1) = cyberdogData->tau[1 + leg * 3];
+//        datas[leg].tauEstimate(2) = cyberdogData->tau[2 + leg * 3];
     }
 }
 ```
@@ -423,8 +476,192 @@ void LegController<T>::updateCommand(CyberdogCmd *cyberdogCmd)
         cyberdogCmd->qd_des[0 + leg * 3] = commands[leg].qdDes(0);
         cyberdogCmd->qd_des[1 + leg * 3] = commands[leg].qdDes(1);
         cyberdogCmd->qd_des[2 + leg * 3] = commands[leg].qdDes(2);
+        
+        // 计算关节力矩的估计值 tauEstimate = tau +kp*(qDes-q)+kd*(qdDes-qd)
+        // 等于足端受到的外界力产生的关节力加上关节模拟的关节刚度产生的关节力
+        datas[leg].tauEstimate =
+                legTorque +
+                commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
+                commands[leg].kdJoint * (commands[leg].qdDes - datas[leg].qd);
     }
 }
+```
+
+## 修改遥控器相关代码
+
+### 键盘控制
+
+注意！！！测试未通过 TODO
+
+在`robot/src/HardwareBridge.cpp`中，在`void MiniCheetahHardwareBridge::run()`函数中新建键盘读取任务
+
+```cpp
+_keyboardThread = std::thread(&MiniCheetahHardwareBridge::run_keyboard, this);
+```
+
+其中`run_keyboard()`函数内容为（由于是非阻塞读取键盘输入，需要引入头文件`#include <termios.h>`）
+
+```cpp
+extern rc_control_settings rc_control;
+
+void HardwareBridge::run_keyboard()
+{
+    int c;
+    while(true)
+    {
+        if(kbhit())
+        {
+            c = fgetc(stdin);
+            switch(c)
+            {
+                case '0':
+                    printf("switch mode to OFF\r\n");
+                    rc_control.mode = 0;
+                    break;
+                case '6':
+                    printf("switch mode to RECOVERY_STAND\r\n");
+                    rc_control.mode = 12;
+                    break;
+                case '3':
+                    printf("switch mode to BALANCE_STAND\r\n");
+                    rc_control.mode = 3;
+                    break;
+                case '4':
+                    printf("switch mode to LOCOMOTION\r\n");
+                    rc_control.mode = 11;
+                    break;
+                default:
+                    break;
+            }
+        }
+        usleep(5000);
+    }
+}
+```
+
+注意，如需让机器人切换到平衡站立模式，键盘操作切换的顺序为`0 -> 6 -> 3`，不能直接从0切换到3，会触发报错。`rc_control.mode`的模式代码在`robot/include/rt/rt_rc_interface.h`文件中，课根据需要自行添加需要的模式
+
+```cpp
+namespace RC_mode
+{
+    constexpr int OFF = 0;
+    constexpr int QP_STAND = 3;
+    constexpr int BACKFLIP_PRE = 4;
+    constexpr int BACKFLIP = 5;
+    constexpr int VISION = 6;
+    constexpr int LOCOMOTION = 11;
+    constexpr int RECOVERY_STAND = 12;
+    
+    // Experiment Mode
+    constexpr int TWO_LEG_STANCE_PRE = 20;
+    constexpr int TWO_LEG_STANCE = 21;
+};
+```
+
+在`robot/src/HardwareBridge.cpp`文件中，注释掉`MiniCheetahHardwareBridge::run()`函数中的遥控器任务，见上文，略
+
+在`robot/src/RobotRunner.cpp`文件中的`RobotRunner::run()`函数中将`use_rc`设置为1
+
+在`user/MIT_Controller/FSM_States/ControlFSM.cpp`文件中的`ControlFSM<T>::runFSM()`函数中，取消注释if(data.controlParameters->use_rc)`
+
+### 程序自动切换状态
+
+由于Cyberdog运控板不能接遥控器，这里使用两种方法改变运动模式
+
+在`robot/src/HardwareBridge.cpp`文件中，注释掉`MiniCheetahHardwareBridge::run()`函数中的遥控器任务
+
+```cpp
+//    _port = init_sbus(false);  // Not Simulation
+//    PeriodicMemberFunction<HardwareBridge> sbusTask(
+//            &taskManager, .005, "rc_controller",
+//            &HardwareBridge::run_sbus, this);
+//    sbusTask.start();
+```
+
+在`robot/src/RobotRunner.cpp`文件中的`RobotRunner::run()`函数中将`use_rc`设置为0，跳过Estop()模式
+
+```cpp
+***略***
+    
+//使能LegController对象
+_legController->setEnabled(true);
+
+// 将use_rc设为0，跳过Estop()模式
+controlParameters->use_rc = 0;
+
+//当遥控器控制时的rc_control.mode为0时，将LegController对象的控制命令数据清零
+if((rc_control.mode == 0) && controlParameters->use_rc)
+{
+    if(count_ini % 1000 == 0) printf("ESTOP!\n");
+    
+***略***
+```
+
+在`user/MIT_Controller/FSM_States/ControlFSM.cpp`文件中的`ControlFSM<T>::runFSM()`函数中，注释掉`if(data.controlParameters->use_rc)`，并令机器人模式自动切换：
+
+```cpp
+***略***
+
+// 为了安全操作，检查机器人状态
+operatingMode = safetyPreCheck();
+
+// 状态自动切换
+if(iter < 1000)
+{
+    data.controlParameters->control_mode = K_PASSIVE;
+}
+else if(iter < 2000)
+{
+    data.controlParameters->control_mode = K_RECOVERY_STAND;
+}
+else if(iter < 3000)
+{
+    data.controlParameters->control_mode = K_BALANCE_STAND;
+}
+
+// 是否使用遥控器
+//if(data.controlParameters->use_rc)
+//{
+//    // 设定控制模式
+//    int rc_mode = data._desiredStateCommand->rcCommand->mode;
+//
+//    if(rc_mode == RC_mode::RECOVERY_STAND)
+//    {
+//        data.controlParameters->control_mode = K_RECOVERY_STAND;
+//
+//    }
+//    else if(rc_mode == RC_mode::LOCOMOTION)
+//    {
+//        data.controlParameters->control_mode = K_LOCOMOTION;
+//
+//    }
+//    else if(rc_mode == RC_mode::QP_STAND)
+//    {
+//        data.controlParameters->control_mode = K_BALANCE_STAND;
+//
+//    }
+//    else if(rc_mode == RC_mode::VISION)
+//    {
+//        data.controlParameters->control_mode = K_VISION;
+//
+//    }
+//    else if(rc_mode == RC_mode::BACKFLIP || rc_mode == RC_mode::BACKFLIP_PRE)
+//    {
+//        data.controlParameters->control_mode = K_BACKFLIP;
+//    }
+//    //data.controlParameters->control_mode = K_FRONTJUMP;
+//    //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
+//}
+    
+    
+// 如果操作模式是安全的，则运行机器人控制代码。下面为状态机
+if(operatingMode != FSM_OperatingMode::ESTOP)
+{
+    // 如果没有检测到过渡，则运行正常控制
+    if(operatingMode == FSM_OperatingMode::NORMAL)
+    {
+
+***略***
 ```
 
 ## 编译执行
@@ -542,17 +779,14 @@ $ ./Example_MotorCtrl
 因非实时系统，仅推荐编译验证和简单位控测试
 
 ```
-$ scp -r {sdk_path}/cyberdog_motor_sdk mi@192.168.55.1:/home/mi/ #sdk源码拷入应用板，密码123
-
-scp -r ~/ROS_Workspaces/Cheetah-Software/third-party/cyberdog_motor_sdk mi@192.168.55.1:/home/mi/Workspace
-
-$ ssh mi@192.168.55.1 #登录应用板
-mi@lubuntu:~$ cd /home/mi/cyberdog_motor_sdk
-mi@lubuntu:~$ mkdir build && cd build
-mi@lubuntu:~$ cmake ..
-mi@lubuntu:~$ make -j2
-mi@lubuntu:~$ ping 192.168.55.233 #测试和运控板的通信
-mi@lubuntu:~$ ./Example_MotorCtrl
+scp -r ~/{code_path}/Cheetah-Software mi@192.168.55.1:/home/mi #sdk源码拷入应用板，密码123
+ssh mi@192.168.55.1 #登录应用板
+cd /home/mi/Cheetah-Software
+mkdir build && cd build
+cmake ..
+make -j2
+ping 192.168.55.233 #测试和运控板的通信
+./mit_ctrl m r f
 ```
 
 #### 3、铁蛋运控板交叉编译部署
@@ -560,45 +794,40 @@ mi@lubuntu:~$ ./Example_MotorCtrl
 为了能使编译的文件可以直接在机器人上运行，需要在部署交叉编译工具链的docker镜像环境下编译，具体步骤如下：
 
 ```
-docker run -it --rm --name cyberdog_motor_sdk -v /home/xxx/{Cheetah-Software_path}:/work/build_farm/workspace/cyberdog cr.d.xiaomi.net/athena/athena_cheetah_arm64:2.0 /bin/bash
+# 如果使用小米官方的docker，需自行按照文章开头部署编译环境
+docker run -it --rm --name cyberdog -v /{code_path}/Cheetah-Software:/work/build_farm/workspace/cyberdog cr.d.xiaomi.net/athena/athena_cheetah_arm64:2.0 /bin/bash
+# 或者使用我的docker
+docker run -it --rm --name cyberdog -v /{code_path}/Cheetah-Software:/work/build_farm/workspace/cyberdog cyberdog:1.0 /bin/bash
 
-docker run -it --rm --name cyberdog_motor_sdk -v /home/fzq614/ROS_Workspaces/Cheetah-Software:/work/build_farm/workspace/cyberdog cr.d.xiaomi.net/athena/athena_cheetah_arm64:2.0 /bin/bash
-
-docker run -it --rm --name cyberdog -v /home/fzq614/ROS_Workspaces/Cheetah-Software:/work/build_farm/workspace/cyberdog cyberdog:1.0 /bin/bash
-
-
-cd /work/build_farm/workspace/cyberdog/ #进入docker系统的代码仓
+cd /work/build_farm/workspace/cyberdog/
 mkdir onboard-build && cd onboard-build
 cmake -DCMAKE_TOOLCHAIN_FILE=/usr/xcc/aarch64-openwrt-linux-gnu/Toolchain.cmake -DMINI_CHEETAH_BUILD=TRUE -DNO_SIM=TRUE ..
 make -j16 #指定交叉编译工具链并编译
 exit
 ```
 
-编译成功后, 将生成的.so文件libcyber_dog_sdk.so和可执行文件Example_MotorCtrl拷贝到运控/mnt/UDISK目录下
+编译成功后, 将生成的.so文件和可执行文件拷贝到运控
 
 ```
 cd ~/{sdk_path}/onboard-build
 
-cd ~/ROS_Workspaces/cyberdog_motor_sdk/onboard-build
-
-ssh root@192.168.55.233 "mkdir /mnt/UDISK/cyberdog_motor_sdk" #在运控板内创建文件夹
-scp libcyber_dog_motor_sdk.so  Example_MotorCtrl root@192.168.55.233:/mnt/UDISK/cyberdog_motor_sdk
+ssh root@192.168.55.233 "mkdir /mnt/UDISK/cyberdog" #在运控板内创建文件夹
 
 执行脚本将库与可执行文件拷贝到Cyberdog
 ../scripts/send_to_mini_cheetah.sh user/MIT_Controller/mit_ctrl
-（其中主要执行了 scp -r robot-software root@192.168.55.233:/mnt/UDISK/cyberdog_motor_sdk/）
 
 连接到运控板
 ssh root@192.168.55.233
 设置so库路径变量
-export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk/robot-software/build
+export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog/robot-software/build
 
-或者也可以直接设置
-ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk/robot-software/build"
+或者也可以直接ssh设置
+ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog/robot-software/build"
 
 运行控制器
-/mnt/UDISK/cyberdog_motor_sdk/robot-software/build/mit_ctrl m r f
-#通过“nohup /mnt/UDISK/cyberdog_motor_sdk/robot-software/build/mit_ctrl m r f &”可后台运行，退出ssh连接不受影响
+cd /mnt/UDISK/cyberdogk/robot-software/build/
+./mit_ctrl m r f
+#通过“nohup /mnt/UDISK/cyberdog/robot-software/build/mit_ctrl m r f &”可后台运行，退出ssh连接不受影响
 ```
 
 如何添加开机自启动:  
@@ -620,14 +849,10 @@ ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk/ro
 
 ```
 # 重启运控程序:
-$ ssh root@192.168.55.233 "ps | grep -E 'Example_MotorCtrl' | grep -v grep | awk '{print \$1}' | xargs kill -9" #需先于主进程暂停，避免急停
-$ ssh root@192.168.55.233 "ps | grep -E 'manager|ctrl|imu_online' | grep -v grep | awk '{print \$1}' | xargs kill -9"
-$ ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/robot-software/build;/mnt/UDISK/manager /mnt/UDISK/ >> /mnt/UDISK/manager_log/manager.log 2>&1 &"
-# 重启运控板系统:
-$ ssh root@192.168.55.233 "reboot"
-
-
-ssh root@192.168.55.233 "ps | grep -E 'Example_MotorCtrl' | grep -v grep | awk '{print \$1}' | xargs kill -9"
+ssh root@192.168.55.233 "ps | grep -E 'mit_ctrl' | grep -v grep | awk '{print \$1}' | xargs kill -9" #需先于主进程暂停，避免急停
 ssh root@192.168.55.233 "ps | grep -E 'manager|ctrl|imu_online' | grep -v grep | awk '{print \$1}' | xargs kill -9"
 ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/robot-software/build;/mnt/UDISK/manager /mnt/UDISK/ >> /mnt/UDISK/manager_log/manager.log 2>&1 &"
+
+# 重启运控板系统:
+ssh root@192.168.55.233 "reboot"
 ```
