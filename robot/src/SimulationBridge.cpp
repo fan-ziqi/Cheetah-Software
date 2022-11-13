@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <termios.h>
+#include <sys/ioctl.h>
 
 /*!
  * Connect to a simulation
@@ -286,8 +287,14 @@ void SimulationBridge::runRobotControl()
         
         _robotRunner->init();
         _firstControllerRun = false;
-        
+
+#ifdef USE_RC
         sbus_thread = new std::thread(&SimulationBridge::run_sbus, this);
+#endif
+
+#ifdef USE_KEYBOARD
+        keyboard_thread = new std::thread(&SimulationBridge::run_keyboard, this);
+#endif
         
     }
     _robotRunner->run();
@@ -302,6 +309,7 @@ void SimulationBridge::run_sbus()
     int port = init_sbus(true);  // Simulation
     while(true)
     {
+        printf("haha\r\n");
         if(port > 0)
         {
             int x = receive_sbus(port);
@@ -312,4 +320,59 @@ void SimulationBridge::run_sbus()
         }
         usleep(5000);
     }
+}
+
+static bool kbhit()
+{
+    termios term;
+    tcgetattr(0, &term);
+    
+    termios term2 = term;
+    term2.c_lflag &= ~ICANON;
+    tcsetattr(0, TCSANOW, &term2);
+    
+    int byteswaiting;
+    ioctl(0, FIONREAD, &byteswaiting);
+    
+    tcsetattr(0, TCSANOW, &term);
+    
+    return byteswaiting > 0;
+}
+
+extern rc_control_settings rc_control;
+
+void SimulationBridge::run_keyboard()
+{
+    int c;
+    // Check for keyboard input
+    while(true)
+    {
+        if(kbhit())
+        {
+            c = fgetc(stdin);
+            switch(c)
+            {
+                case '0':
+                    printf("switch mode to OFF\r\n");
+                    rc_control.mode = 0;
+                    break;
+                case '6':
+                    printf("switch mode to RECOVERY_STAND\r\n");
+                    rc_control.mode = 12;
+                    break;
+                case '3':
+                    printf("switch mode to BALANCE_STAND\r\n");
+                    rc_control.mode = 3;
+                    break;
+                case '4':
+                    printf("switch mode to LOCOMOTION\r\n");
+                    rc_control.mode = 11;
+                    break;
+                default:
+                    break;
+            }
+        }
+        usleep(5000);
+    }
+    
 }

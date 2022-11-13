@@ -96,9 +96,7 @@ void ControlFSM<T>::runFSM()
     // 为了安全操作，检查机器人状态
     operatingMode = safetyPreCheck();
 
-#ifdef NO_USE_RC
-    data.controlParameters->control_mode = K_RECOVERY_STAND;
-
+//    data.controlParameters->control_mode = K_RECOVERY_STAND;
 //    if(iter < 1000)
 //    {
 //        data.controlParameters->control_mode = K_PASSIVE;
@@ -123,7 +121,6 @@ void ControlFSM<T>::runFSM()
 //    {
 //        data.controlParameters->control_mode = K_BACKFLIP;
 //    }
-#else
     
     // 是否使用遥控器
     if(data.controlParameters->use_rc)
@@ -158,8 +155,7 @@ void ControlFSM<T>::runFSM()
         //data.controlParameters->control_mode = K_FRONTJUMP;
         //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
     }
-
-#endif
+    
     
     // 如果操作模式是安全的，则运行机器人控制代码。下面为状态机
     if(operatingMode != FSM_OperatingMode::ESTOP)

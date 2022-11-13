@@ -54,6 +54,7 @@ private:
     u64 _iterations = 0;
     
     std::thread *sbus_thread;
+    std::thread *keyboard_thread;
 };
 
 #endif  // PROJECT_SIMULATIONDRIVER_H

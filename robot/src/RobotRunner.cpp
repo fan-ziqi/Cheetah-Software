@@ -139,12 +139,9 @@ void RobotRunner::run()
         //使能LegController对象
         _legController->setEnabled(true);
 
-#ifdef NO_USE_RC
-        // 将use_rc设为0，跳过Estop()模式
-        controlParameters->use_rc = 0;
-#endif
-
-#ifndef USE_KEYBOARD
+//        // 将use_rc设为0，跳过Estop()模式
+//        controlParameters->use_rc = 0;
+        
         //当遥控器控制时的rc_control.mode为0时，将LegController对象的控制命令数据清零
         if((rc_control.mode == 0) && controlParameters->use_rc)
         {
@@ -158,49 +155,46 @@ void RobotRunner::run()
         }
         else
         {
-#endif
-        // 如果关节位置初始对象没有初始化时，将LegController对象的各个关节的kp和kd赋值
-        if(!_jpos_initializer->IsInitialized(_legController))
-        {
-            Mat3<float> kpMat;
-            Mat3<float> kdMat;
-            // 更新jpos反馈增益
-            if(robotType == RobotType::MINI_CHEETAH)
+            // 如果关节位置初始对象没有初始化时，将LegController对象的各个关节的kp和kd赋值
+            if(!_jpos_initializer->IsInitialized(_legController))
             {
-                kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
-                kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
-            }
-            else if(robotType == RobotType::CHEETAH_3)
-            {
-                kpMat << 50, 0, 0, 0, 50, 0, 0, 0, 50;
-                kdMat << 1, 0, 0, 0, 1, 0, 0, 0, 1;
+                Mat3<float> kpMat;
+                Mat3<float> kdMat;
+                // 更新jpos反馈增益
+                if(robotType == RobotType::MINI_CHEETAH)
+                {
+                    kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
+                    kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
+                }
+                else if(robotType == RobotType::CHEETAH_3)
+                {
+                    kpMat << 50, 0, 0, 0, 50, 0, 0, 0, 50;
+                    kdMat << 1, 0, 0, 0, 1, 0, 0, 0, 1;
+                }
+                else
+                {
+                    assert(false);
+                }
+                
+                for(int leg = 0; leg < 4; leg++)
+                {
+                    _legController->commands[leg].kpJoint = kpMat;
+                    _legController->commands[leg].kdJoint = kdMat;
+                }
             }
             else
             {
-                assert(false);
+                //初始完成，执行机器人控制对象
+                
+                // 运行控制
+                _robot_ctrl->runController();
+                cheetahMainVisualization->p = _stateEstimate.position;
+                
+                // 更新可视化
+                _robot_ctrl->updateVisualization();
+                cheetahMainVisualization->p = _stateEstimate.position;
             }
-            
-            for(int leg = 0; leg < 4; leg++)
-            {
-                _legController->commands[leg].kpJoint = kpMat;
-                _legController->commands[leg].kdJoint = kdMat;
-            }
         }
-        else
-        {
-            //初始完成，执行机器人控制对象
-            
-            // 运行控制
-            _robot_ctrl->runController();
-            cheetahMainVisualization->p = _stateEstimate.position;
-            
-            // 更新可视化
-            _robot_ctrl->updateVisualization();
-            cheetahMainVisualization->p = _stateEstimate.position;
-        }
-#ifndef USE_KEYBOARD
-        }
-#endif
     }
     
     // 可视化 (之后会作为一个单独的函数)

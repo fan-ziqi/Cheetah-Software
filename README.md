@@ -60,7 +60,7 @@ Failed to checkout tag: 'master'
 # 编译
 
 ```bash
-make -j4
+make -j8
 ```
 
 编译会出现错误
@@ -560,40 +560,45 @@ mi@lubuntu:~$ ./Example_MotorCtrl
 为了能使编译的文件可以直接在机器人上运行，需要在部署交叉编译工具链的docker镜像环境下编译，具体步骤如下：
 
 ```
-$ docker run -it --rm --name cyberdog_motor_sdk -v /home/xxx/{Cheetah-Software_path}:/work/build_farm/workspace/cyberdog cr.d.xiaomi.net/athena/athena_cheetah_arm64:2.0 /bin/bash
+docker run -it --rm --name cyberdog_motor_sdk -v /home/xxx/{Cheetah-Software_path}:/work/build_farm/workspace/cyberdog cr.d.xiaomi.net/athena/athena_cheetah_arm64:2.0 /bin/bash
 
 docker run -it --rm --name cyberdog_motor_sdk -v /home/fzq614/ROS_Workspaces/Cheetah-Software:/work/build_farm/workspace/cyberdog cr.d.xiaomi.net/athena/athena_cheetah_arm64:2.0 /bin/bash
 
 docker run -it --rm --name cyberdog -v /home/fzq614/ROS_Workspaces/Cheetah-Software:/work/build_farm/workspace/cyberdog cyberdog:1.0 /bin/bash
 
-[root:/work] # cd /work/build_farm/workspace/cyberdog/ #进入docker系统的代码仓
-[root:/work/build_farm/workspace/cyberdog] # mkdir onboard-build && cd onboard-build
-[root:/work/build_farm/workspace/cyberdog] # cmake -DCMAKE_TOOLCHAIN_FILE=/usr/xcc/aarch64-openwrt-linux-gnu/Toolchain.cmake -DMINI_CHEETAH_BUILD=TRUE -DNO_SIM=TRUE ..
-[root:/work/build_farm/workspace/cyberdog] # make -j4 #指定交叉编译工具链并编译
-[root:/work/build_farm/workspace/cyberdog] # exit
+
+cd /work/build_farm/workspace/cyberdog/ #进入docker系统的代码仓
+mkdir onboard-build && cd onboard-build
+cmake -DCMAKE_TOOLCHAIN_FILE=/usr/xcc/aarch64-openwrt-linux-gnu/Toolchain.cmake -DMINI_CHEETAH_BUILD=TRUE -DNO_SIM=TRUE ..
+make -j16 #指定交叉编译工具链并编译
+exit
 ```
 
 编译成功后, 将生成的.so文件libcyber_dog_sdk.so和可执行文件Example_MotorCtrl拷贝到运控/mnt/UDISK目录下
 
 ```
-$ cd ~/{sdk_path}/onboard-build
+cd ~/{sdk_path}/onboard-build
 
 cd ~/ROS_Workspaces/cyberdog_motor_sdk/onboard-build
 
-$ ssh root@192.168.55.233 "mkdir /mnt/UDISK/cyberdog_motor_sdk" #在运控板内创建文件夹
-$ scp libcyber_dog_motor_sdk.so  Example_MotorCtrl root@192.168.55.233:/mnt/UDISK/cyberdog_motor_sdk
+ssh root@192.168.55.233 "mkdir /mnt/UDISK/cyberdog_motor_sdk" #在运控板内创建文件夹
+scp libcyber_dog_motor_sdk.so  Example_MotorCtrl root@192.168.55.233:/mnt/UDISK/cyberdog_motor_sdk
 
-scp -r robot-software root@192.168.55.233:/mnt/UDISK/cyberdog_motor_sdk/
+执行脚本将库与可执行文件拷贝到Cyberdog
+../scripts/send_to_mini_cheetah.sh user/MIT_Controller/mit_ctrl
+（其中主要执行了 scp -r robot-software root@192.168.55.233:/mnt/UDISK/cyberdog_motor_sdk/）
 
-$ ssh root@192.168.55.233
-root@TinaLinux:~# cd /mnt/UDISK/cyberdog_motor_sdk
-root@TinaLinux:~# export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk/robot-software/build #设置so库路径变量
+连接到运控板
+ssh root@192.168.55.233
+设置so库路径变量
+export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk/robot-software/build
 
+或者也可以直接设置
 ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/cyberdog_motor_sdk/robot-software/build"
 
-root@TinaLinux:~# ./Example_MotorCtrl  #通过“nohup ./Example_MotorCtrl &”可后台运行，退出ssh连接不受影响
-
+运行控制器
 /mnt/UDISK/cyberdog_motor_sdk/robot-software/build/mit_ctrl m r f
+#通过“nohup /mnt/UDISK/cyberdog_motor_sdk/robot-software/build/mit_ctrl m r f &”可后台运行，退出ssh连接不受影响
 ```
 
 如何添加开机自启动:  

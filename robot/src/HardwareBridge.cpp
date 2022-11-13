@@ -262,7 +262,7 @@ void MiniCheetahHardwareBridge::run()
     initCommon();
 
 #ifdef CYBERDOG
-    _cyberdogInterface = new CyberdogInterface(500);
+    _cyberdogInterface = new CyberdogInterface(500);//500HZ
 #else
     //初始化MiniCheetah的spi和IMU
     initHardware();
@@ -395,7 +395,7 @@ void MiniCheetahHardwareBridge::run()
     microstrainLogger.start();
 #endif
 
-#ifdef NO_USE_RC
+#ifdef USE_RC
     // 启动遥控器指令接收任务
     _port = init_sbus(false);  // Not Simulation
     PeriodicMemberFunction<HardwareBridge> sbusTask(
@@ -431,59 +431,57 @@ void HardwareBridge::run_sbus()
     }
 }
 
-extern rc_control_settings rc_control;
 
-int getch(void)
+static bool kbhit()
 {
-    int ch;
-    struct termios oldt;
-    struct termios newt;
+    termios term;
+    tcgetattr(0, &term);
     
-    // Store old settings, and copy to new settings
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
+    termios term2 = term;
+    term2.c_lflag &= ~ICANON;
+    tcsetattr(0, TCSANOW, &term2);
     
-    // Make required changes and apply the settings
-    newt.c_lflag &= ~(ICANON | ECHO);
-    newt.c_iflag |= IGNBRK;
-    newt.c_iflag &= ~(INLCR | ICRNL | IXON | IXOFF);
-    newt.c_lflag &= ~(ICANON | ECHO | ECHOK | ECHOE | ECHONL | ISIG | IEXTEN);
-    newt.c_cc[VMIN] = 1;
-    newt.c_cc[VTIME] = 0;
-    tcsetattr(fileno(stdin), TCSANOW, &newt);
+    int byteswaiting;
+    ioctl(0, FIONREAD, &byteswaiting);
     
-    // Get the current character
-    ch = getchar();
+    tcsetattr(0, TCSANOW, &term);
     
-    // Reapply old settings
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    
-    return ch;
+    return byteswaiting > 0;
 }
 
-char key(' ');
+extern rc_control_settings rc_control;
 
 void HardwareBridge::run_keyboard()
 {
-    while(1)
+    int c;
+    // Check for keyboard input
+    while(true)
     {
-//        printf("haha\r\n");
-//        key = getch();
-//        if(key == '0')
-//        {
-//            printf("%c\r\n", key);
-//            rc_control.mode = 0;
-//        }
-//        if(key == '1')
-//        {
-//            printf("%c\r\n", key);
-//            rc_control.mode = 1;
-//        }
-//        if(key == '3')
-//        {
-//            printf("%c\r\n", key);
-//            rc_control.mode = 3;
-//        }
+        if(kbhit())
+        {
+            c = fgetc(stdin);
+            switch(c)
+            {
+                case '0':
+                    printf("switch mode to OFF\r\n");
+                    rc_control.mode = 0;
+                    break;
+                case '6':
+                    printf("switch mode to RECOVERY_STAND\r\n");
+                    rc_control.mode = 12;
+                    break;
+                case '3':
+                    printf("switch mode to BALANCE_STAND\r\n");
+                    rc_control.mode = 3;
+                    break;
+                case '4':
+                    printf("switch mode to LOCOMOTION\r\n");
+                    rc_control.mode = 11;
+                    break;
+                default:
+                    break;
+            }
+        }
         usleep(5000);
     }
     
