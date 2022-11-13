@@ -36,7 +36,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T> *_quadruped,
     data._gaitScheduler = _gaitScheduler;
     data._desiredStateCommand = _desiredStateCommand;
     data.controlParameters = controlParameters;
-    data.visualizationData = visualizationData;
+//    data.visualizationData = visualizationData;
     data.userParameters = userParameters;
     
     // 初始化并将所有FSM状态添加到状态列表中
@@ -48,7 +48,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T> *_quadruped,
     statesList.balanceStand = new FSM_State_BalanceStand<T>(&data);
     statesList.locomotion = new FSM_State_Locomotion<T>(&data);
     statesList.recoveryStand = new FSM_State_RecoveryStand<T>(&data);
-    statesList.vision = new FSM_State_Vision<T>(&data);
+//    statesList.vision = new FSM_State_Vision<T>(&data);
     statesList.backflip = new FSM_State_BackFlip<T>(&data);
     statesList.frontJump = new FSM_State_FrontJump<T>(&data);
     
@@ -97,18 +97,18 @@ void ControlFSM<T>::runFSM()
     operatingMode = safetyPreCheck();
 
 //    data.controlParameters->control_mode = K_RECOVERY_STAND;
-//    if(iter < 1000)
-//    {
-//        data.controlParameters->control_mode = K_PASSIVE;
-//    }
-//    else if(iter < 2000)
-//    {
-//        data.controlParameters->control_mode = K_RECOVERY_STAND;
-//    }
-//    else if(iter < 3000)
-//    {
-//        data.controlParameters->control_mode = K_BALANCE_STAND;
-//    }
+    if(iter < 1000)
+    {
+        data.controlParameters->control_mode = K_PASSIVE;
+    }
+    else if(iter < 2000)
+    {
+        data.controlParameters->control_mode = K_RECOVERY_STAND;
+    }
+    else if(iter < 3000)
+    {
+        data.controlParameters->control_mode = K_BALANCE_STAND;
+    }
 //    else if(iter < 4000)
 //    {
 //        data.controlParameters->control_mode = K_LOCOMOTION;
@@ -121,40 +121,67 @@ void ControlFSM<T>::runFSM()
 //    {
 //        data.controlParameters->control_mode = K_BACKFLIP;
 //    }
-    
-    // 是否使用遥控器
-    if(data.controlParameters->use_rc)
-    {
-        // 设定控制模式
-        int rc_mode = data._desiredStateCommand->rcCommand->mode;
-        
-        if(rc_mode == RC_mode::RECOVERY_STAND)
-        {
-            data.controlParameters->control_mode = K_RECOVERY_STAND;
-            
-        }
-        else if(rc_mode == RC_mode::LOCOMOTION)
-        {
-            data.controlParameters->control_mode = K_LOCOMOTION;
-            
-        }
-        else if(rc_mode == RC_mode::QP_STAND)
-        {
-            data.controlParameters->control_mode = K_BALANCE_STAND;
-            
-        }
-        else if(rc_mode == RC_mode::VISION)
-        {
-            data.controlParameters->control_mode = K_VISION;
-            
-        }
-        else if(rc_mode == RC_mode::BACKFLIP || rc_mode == RC_mode::BACKFLIP_PRE)
-        {
-            data.controlParameters->control_mode = K_BACKFLIP;
-        }
-        //data.controlParameters->control_mode = K_FRONTJUMP;
-        //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
-    }
+
+//    // 上下晃
+//    int count_temp = 20000;
+//    if(iter < 1000)
+//    {
+//        data.controlParameters->control_mode = K_PASSIVE;
+//        // printf("Mark K_PASSIVE=0\n");
+//    }
+//    else if(iter < 2000)
+//    {
+//        data.controlParameters->control_mode = K_RECOVERY_STAND;
+//    }
+//    else if(iter < count_temp)
+//    {
+//        data.controlParameters->control_mode = K_BALANCE_STAND;
+//        // printf("Mark control_mode = K_BALANCE_STAND\n");
+//    }
+//    else if(iter < count_temp + 3000)
+//    {
+//        data.controlParameters->control_mode = K_RECOVERY_STAND;
+//        // printf("Mark control_mode = K_RECOVERY_STAND\n");
+//    }
+//    else
+//    {
+//        printf("done!\n");
+//    }
+
+
+//    // 是否使用遥控器
+//    if(data.controlParameters->use_rc)
+//    {
+//        // 设定控制模式
+//        int rc_mode = data._desiredStateCommand->rcCommand->mode;
+//
+//        if(rc_mode == RC_mode::RECOVERY_STAND)
+//        {
+//            data.controlParameters->control_mode = K_RECOVERY_STAND;
+//
+//        }
+//        else if(rc_mode == RC_mode::LOCOMOTION)
+//        {
+//            data.controlParameters->control_mode = K_LOCOMOTION;
+//
+//        }
+//        else if(rc_mode == RC_mode::QP_STAND)
+//        {
+//            data.controlParameters->control_mode = K_BALANCE_STAND;
+//
+//        }
+//        else if(rc_mode == RC_mode::VISION)
+//        {
+//            data.controlParameters->control_mode = K_VISION;
+//
+//        }
+//        else if(rc_mode == RC_mode::BACKFLIP || rc_mode == RC_mode::BACKFLIP_PRE)
+//        {
+//            data.controlParameters->control_mode = K_BACKFLIP;
+//        }
+//        //data.controlParameters->control_mode = K_FRONTJUMP;
+//        //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
+//    }
     
     
     // 如果操作模式是安全的，则运行机器人控制代码。下面为状态机
@@ -321,9 +348,9 @@ FSM_State<T> *ControlFSM<T>::getNextState(FSM_StateName stateName)
         
         case FSM_StateName::RECOVERY_STAND:
             return statesList.recoveryStand;
-        
-        case FSM_StateName::VISION:
-            return statesList.vision;
+
+//        case FSM_StateName::VISION:
+//            return statesList.vision;
         
         case FSM_StateName::BACKFLIP:
             return statesList.backflip;

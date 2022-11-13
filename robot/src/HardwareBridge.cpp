@@ -405,7 +405,7 @@ void MiniCheetahHardwareBridge::run()
 #endif
 
 #ifdef USE_KEYBOARD
-    _keyboardThread = std::thread(&MiniCheetahHardwareBridge::run_keyboard, this);
+//    _keyboardThread = std::thread(&MiniCheetahHardwareBridge::run_keyboard, this);
 #endif
     
     //每隔1秒循环
@@ -769,7 +769,7 @@ void MiniCheetahHardwareBridge::CyberdogProcessData()
     while(true)
     {
         count++;
-        if(count % 500000000 == 0)
+        if(count % 100000000 == 0)
         {
             count = 0;
             printf("interval:---------%.4f-------------\n", _cyberdogInterface->cyberdogData.ctrl_topic_interval);
@@ -820,12 +820,18 @@ void MiniCheetahHardwareBridge::CyberdogProcessData()
         }
         for(int i = 0; i < 4; i++)
         {
-            _vectorNavData.quat(i) = _cyberdogInterface->cyberdogData.quat[i];
+            // 注意 Cyberdog SDK 的四元数顺序为 xyzw 需要转成 wxyz
+//            _vectorNavData.quat(i) = _cyberdogInterface->cyberdogData.quat[i];
+            _vectorNavData.quat[0] = _cyberdogInterface->cyberdogData.quat[1];
+            _vectorNavData.quat[1] = _cyberdogInterface->cyberdogData.quat[2];
+            _vectorNavData.quat[2] = _cyberdogInterface->cyberdogData.quat[3];
+            _vectorNavData.quat[3] = _cyberdogInterface->cyberdogData.quat[0];
         }
         for(int i = 0; i < 3; i++)
         {
             _vectorNavData.gyro(i) = _cyberdogInterface->cyberdogData.omega[i];
         }
+        usleep(5000);
     }
 }
 
