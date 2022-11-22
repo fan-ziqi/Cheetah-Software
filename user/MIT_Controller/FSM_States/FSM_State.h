@@ -58,21 +58,21 @@ public:
     FSM_State(ControlFSMData<T> *_controlFSMData, FSM_StateName stateNameIn,
               std::string stateStringIn);
     
-    // 进入一种状态时要执行的行为
+    // 机器人从一个状态进入新的状态时，会调用新状态的onEnter函数，初始化相关位置信息
     virtual void onEnter() = 0;// {}
     
-    // 运行状态的正常行为
+    // 机器人处于当前状态的运动下，会周期调用run()，运行相关控制算法产生控制指令
     virtual void run() = 0; //{}
     
-    // 管理具体状态的转换
+    // 检查外部输入状态，是否发生新的运动控制模式转变
     virtual FSM_StateName checkTransition()
     { return FSM_StateName::INVALID; }
     
-    // 运行转换行为，并在完成转换时返回true
+    // 机器人从一个状态转移到另一个状态时，会重复调用transition()，直到完成运动状态的切换
     virtual TransitionData<T> transition()
     { return transitionData; }
     
-    // 退出状态时要执行的行为
+    // 机器人退出当前运动状态时，会调用onExit()函数，其实就是一个空函数
     virtual void onExit() = 0; // {}
     
     // 关节PD控制

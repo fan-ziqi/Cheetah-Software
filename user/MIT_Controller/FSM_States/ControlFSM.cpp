@@ -97,18 +97,18 @@ void ControlFSM<T>::runFSM()
     operatingMode = safetyPreCheck();
 
 //    data.controlParameters->control_mode = K_RECOVERY_STAND;
-    if(iter < 1000)
-    {
-        data.controlParameters->control_mode = K_PASSIVE;
-    }
-    else if(iter < 2000)
-    {
-        data.controlParameters->control_mode = K_RECOVERY_STAND;
-    }
-    else if(iter < 3000)
-    {
-        data.controlParameters->control_mode = K_BALANCE_STAND;
-    }
+//    if(iter < 1000)
+//    {
+//        data.controlParameters->control_mode = K_PASSIVE;
+//    }
+//    else if(iter < 2000)
+//    {
+//        data.controlParameters->control_mode = K_RECOVERY_STAND;
+//    }
+//    else if(iter < 3000)
+//    {
+//        data.controlParameters->control_mode = K_BALANCE_STAND;
+//    }
 //    else if(iter < 4000)
 //    {
 //        data.controlParameters->control_mode = K_LOCOMOTION;
@@ -147,41 +147,41 @@ void ControlFSM<T>::runFSM()
 //    {
 //        printf("done!\n");
 //    }
-
-
-//    // 是否使用遥控器
-//    if(data.controlParameters->use_rc)
-//    {
-//        // 设定控制模式
-//        int rc_mode = data._desiredStateCommand->rcCommand->mode;
-//
-//        if(rc_mode == RC_mode::RECOVERY_STAND)
-//        {
-//            data.controlParameters->control_mode = K_RECOVERY_STAND;
-//
-//        }
-//        else if(rc_mode == RC_mode::LOCOMOTION)
-//        {
-//            data.controlParameters->control_mode = K_LOCOMOTION;
-//
-//        }
-//        else if(rc_mode == RC_mode::QP_STAND)
-//        {
-//            data.controlParameters->control_mode = K_BALANCE_STAND;
-//
-//        }
-//        else if(rc_mode == RC_mode::VISION)
-//        {
-//            data.controlParameters->control_mode = K_VISION;
-//
-//        }
-//        else if(rc_mode == RC_mode::BACKFLIP || rc_mode == RC_mode::BACKFLIP_PRE)
-//        {
-//            data.controlParameters->control_mode = K_BACKFLIP;
-//        }
-//        //data.controlParameters->control_mode = K_FRONTJUMP;
-//        //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
-//    }
+    
+    
+    // 是否使用遥控器
+    if(data.controlParameters->use_rc)
+    {
+        // 设定控制模式
+        int rc_mode = data._desiredStateCommand->rcCommand->mode;
+        
+        if(rc_mode == RC_mode::RECOVERY_STAND)
+        {
+            data.controlParameters->control_mode = K_RECOVERY_STAND;
+            
+        }
+        else if(rc_mode == RC_mode::LOCOMOTION)
+        {
+            data.controlParameters->control_mode = K_LOCOMOTION;
+            
+        }
+        else if(rc_mode == RC_mode::QP_STAND)
+        {
+            data.controlParameters->control_mode = K_BALANCE_STAND;
+            
+        }
+        else if(rc_mode == RC_mode::VISION)
+        {
+            data.controlParameters->control_mode = K_VISION;
+            
+        }
+        else if(rc_mode == RC_mode::BACKFLIP || rc_mode == RC_mode::BACKFLIP_PRE)
+        {
+            data.controlParameters->control_mode = K_BACKFLIP;
+        }
+        //data.controlParameters->control_mode = K_FRONTJUMP;
+        //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
+    }
     
     
     // 如果操作模式是安全的，则运行机器人控制代码。下面为状态机

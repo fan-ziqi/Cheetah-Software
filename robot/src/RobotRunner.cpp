@@ -139,10 +139,8 @@ void RobotRunner::run()
         //使能LegController对象
         _legController->setEnabled(true);
 
-#ifdef USE_KEYBOARD
-        // 将use_rc设为0，跳过Estop()模式
-        controlParameters->use_rc = 0;
-#endif
+//        // 将use_rc设为0，跳过Estop()模式
+//        controlParameters->use_rc = 0;
         
         //当遥控器控制时的rc_control.mode为0时，将LegController对象的控制命令数据清零
         if((rc_control.mode == 0) && controlParameters->use_rc)

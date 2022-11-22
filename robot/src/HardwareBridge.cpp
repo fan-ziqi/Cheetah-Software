@@ -478,6 +478,38 @@ void HardwareBridge::run_keyboard()
                     printf("switch mode to LOCOMOTION\r\n");
                     rc_control.mode = 11;
                     break;
+                case 'q':
+                    printf("UP\r\n");
+                    rc_control.height_variation += 0.1;
+                    break;
+                case 'z':
+                    printf("DOWN\r\n");
+                    rc_control.height_variation -= 0.1;
+                    break;
+                case 'w':
+                    printf("rpy_des[0]+=0.1\r\n");
+                    rc_control.rpy_des[0] += 0.1;
+                    break;
+                case 'x':
+                    printf("rpy_des[0]-=0.1\r\n");
+                    rc_control.rpy_des[0] -= 0.1;
+                    break;
+                case 'e':
+                    printf("rpy_des[1]+=0.1\r\n");
+                    rc_control.rpy_des[1] += 0.1;
+                    break;
+                case 'c':
+                    printf("rpy_des[1]-=0.1\r\n");
+                    rc_control.rpy_des[1] -= 0.1;
+                    break;
+                case 'r':
+                    printf("rpy_des[2]+=0.1\r\n");
+                    rc_control.rpy_des[2] += 0.1;
+                    break;
+                case 'v':
+                    printf("rpy_des[2]-=0.1\r\n");
+                    rc_control.rpy_des[2] -= 0.1;
+                    break;
                 default:
                     break;
             }

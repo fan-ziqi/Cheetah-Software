@@ -180,6 +180,7 @@ void LegController<T>::updateCommand(CyberdogCmd *cyberdogCmd)
 {
     for(int leg = 0; leg < 4; leg++)
     {
+        // 见MPC论文2-D
         // tauFF 初始化关节力矩
         Vec3<T> legTorque = commands[leg].tauFeedForward;
         
