@@ -185,7 +185,6 @@ void RobotRunner::run()
             else
             {
                 //初始完成，执行机器人控制对象
-                
                 // 运行控制
                 _robot_ctrl->runController();
                 cheetahMainVisualization->p = _stateEstimate.position;

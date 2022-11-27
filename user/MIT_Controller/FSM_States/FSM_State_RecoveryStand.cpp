@@ -9,10 +9,9 @@
 
 
 /**
- * Constructor for the FSM State that passes in state specific info to
- * the generic FSM State constructor.
+ * @ * FSM状态的构造函数，它将特定于状态的信息传递给通用的FSM状态构造函数。
  *
- * @param _controlFSMData holds all of the relevant control data
+ * @param _controlFSMData 保存所有相关的控制数据
  */
 template<typename T>
 FSM_State_RecoveryStand<T>::FSM_State_RecoveryStand(ControlFSMData<T> *_controlFSMData)
@@ -103,7 +102,7 @@ bool FSM_State_RecoveryStand<T>::_UpsideDown()
 }
 
 /**
- * Calls the functions to be executed on each control loop iteration.
+ * 调用要在每个控制循环迭代上执行的函数
  */
 template<typename T>
 void FSM_State_RecoveryStand<T>::run()
@@ -247,10 +246,9 @@ void FSM_State_RecoveryStand<T>::_FoldLegs(const int &curr_iter)
 }
 
 /**
- * Manages which states can be transitioned into either by the user
- * commands or state event triggers.
+ * 管理可以通过用户命令或状态事件触发器转换到哪些状态
  *
- * @return the enumerated FSM state name to transition into
+ * @return 要转换到的FSM枚举名称
  */
 template<typename T>
 FSM_StateName FSM_State_RecoveryStand<T>::checkTransition()
@@ -258,7 +256,7 @@ FSM_StateName FSM_State_RecoveryStand<T>::checkTransition()
     this->nextStateName = this->stateName;
     iter++;
     
-    // Switch FSM control mode
+    // 切换FSM控制模式
     switch((int) this->_data->controlParameters->control_mode)
     {
         case K_RECOVERY_STAND:
@@ -299,10 +297,9 @@ FSM_StateName FSM_State_RecoveryStand<T>::checkTransition()
 }
 
 /**
- * Handles the actual transition for the robot between states.
- * Returns true when the transition is completed.
+ * 处理机器人在状态之间的实际转换
  *
- * @return true if transition is complete
+ * @return true 如果转换完成
  */
 template<typename T>
 TransitionData<T> FSM_State_RecoveryStand<T>::transition()
@@ -339,12 +336,12 @@ TransitionData<T> FSM_State_RecoveryStand<T>::transition()
                       << std::endl;
     }
     
-    // Return the transition data to the FSM
+    // 向FSM返回转换数据
     return this->transitionData;
 }
 
 /**
- * Cleans up the state information on exiting the state.
+ * 清除退出状态时的状态信息
  */
 template<typename T>
 void FSM_State_RecoveryStand<T>::onExit()

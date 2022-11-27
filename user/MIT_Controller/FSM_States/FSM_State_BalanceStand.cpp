@@ -1,30 +1,28 @@
 /*=========================== Balance Stand ===========================*/
 /**
- * FSM State that forces all legs to be on the ground and uses the QP
- * Balance controller for instantaneous balance control.
+ * 强制所有腿着地，使用 QP Balance 控制器进行瞬时平衡控制
  */
 
 #include "FSM_State_BalanceStand.h"
 #include <Controllers/WBC_Ctrl/LocomotionCtrl/LocomotionCtrl.hpp>
 
 /**
- * Constructor for the FSM State that passes in state specific info to
- * the generic FSM State constructor.
+ * FSM状态的构造函数，它将特定于状态的信息传递给通用的FSM状态构造函数。
  *
- * @param _controlFSMData holds all of the relevant control data
+ * @param _controlFSMData 保存所有相关的控制数据
  */
 template<typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(
         ControlFSMData<T> *_controlFSMData)
         : FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND, "BALANCE_STAND")
 {
-    // Set the pre controls safety checks
+    // 控制前安全检查
     this->turnOnAllSafetyChecks();
-    // Turn off Foot pos command since it is set in WBC as operational task
+    // 关闭Foot pos命令，因为它在WBC中被设置为操作任务
     this->checkPDesFoot = false;
     
     
-    // Initialize GRF to 0s
+    // 初始化 GRF 为 0s
     this->footFeedForwardForces = Mat34<T>::Zero();
     
     _wbc_ctrl = new LocomotionCtrl<T>(_controlFSMData->_quadruped->buildModel());
@@ -36,13 +34,13 @@ FSM_State_BalanceStand<T>::FSM_State_BalanceStand(
 template<typename T>
 void FSM_State_BalanceStand<T>::onEnter()
 {
-    // Default is to not transition
+    // 默认是不转换
     this->nextStateName = this->stateName;
     
-    // Reset the transition data
+    // 重置转换数据
     this->transitionData.zero();
     
-    // Always set the gait to be standing in this state
+    // 始终将步态设置为站立状态
     this->_data->_gaitScheduler->gaitData._nextGait = GaitType::STAND;
     
     _ini_body_pos = (this->_data->_stateEstimator->getResult()).position;
@@ -59,7 +57,7 @@ void FSM_State_BalanceStand<T>::onEnter()
 }
 
 /**
- * Calls the functions to be executed on each control loop iteration.
+ * 调用要在每个控制循环迭代上执行的函数
  */
 template<typename T>
 void FSM_State_BalanceStand<T>::run()
@@ -71,10 +69,9 @@ void FSM_State_BalanceStand<T>::run()
 }
 
 /**
- * Manages which states can be transitioned into either by the user
- * commands or state event triggers.
+ * 管理可以通过用户命令或状态事件触发器转换到哪些状态
  *
- * @return the enumerated FSM state name to transition into
+ * @return 要转换到的FSM枚举名称
  */
 template<typename T>
 FSM_StateName FSM_State_BalanceStand<T>::checkTransition()
@@ -82,64 +79,39 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition()
     // Get the next state
     _iter++;
     
-    // Switch FSM control mode
+    // 切换FSM控制模式
     switch((int) this->_data->controlParameters->control_mode)
     {
         case K_BALANCE_STAND:
-            // Normal operation for state based transitions
-            
-            // Need a working state estimator for this
-            /*if (velocity > v_max) {
-              // Notify the State of the upcoming next state
-              this->nextStateName = FSM_StateName::LOCOMOTION;
-      
-              // Transition instantaneously to locomotion state on request
-              this->transitionDuration = 0.0;
-      
-              // Set the next gait in the scheduler to
-              this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
-      
-            }*/
-            
-            // TEST: in place to show automatic non user requested transitions
-            /*if (_iter >= 5458) {
-              this->nextStateName = FSM_StateName::LOCOMOTION;
-              this->_data->controlParameters->control_mode = K_LOCOMOTION;
-              this->transitionDuration = 0.0;
-              this->_data->_gaitScheduler->gaitData._nextGait =
-                  GaitType::AMBLE;  // TROT; // Or get whatever is in
-                                    // main_control_settings
-              _iter = 0;
-            }*/
             break;
         
         case K_LOCOMOTION:
-            // Requested change to balance stand
+            // 请求转换到 LOCOMOTION 状态
             this->nextStateName = FSM_StateName::LOCOMOTION;
             
-            // Transition instantaneously to locomotion state on request
+            // 立即转换
             this->transitionDuration = 0.0;
             
-            // Set the next gait in the scheduler to
+            // 在调度程序中设置下一个步态为
             this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
             break;
         
         case K_PASSIVE:
             this->nextStateName = FSM_StateName::PASSIVE;
-            // Transition time is immediate
+            // 立即转换
             this->transitionDuration = 0.0;
             
             break;
         
         case K_VISION:
             this->nextStateName = FSM_StateName::VISION;
-            // Transition time is immediate
+            // 立即转换
             this->transitionDuration = 0.0;
             break;
         
         case K_RECOVERY_STAND:
             this->nextStateName = FSM_StateName::RECOVERY_STAND;
-            // Transition time is immediate
+            // 立即转换
             this->transitionDuration = 0.0;
             break;
         
@@ -154,20 +126,19 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition()
                       << this->_data->controlParameters->control_mode << std::endl;
     }
     
-    // Return the next state name to the FSM
+    // 将下一个状态名返回给 FSM
     return this->nextStateName;
 }
 
 /**
- * Handles the actual transition for the robot between states.
- * Returns true when the transition is completed.
+ * 处理机器人在状态之间的实际转换
  *
- * @return true if transition is complete
+ * @return true 如果转换完成
  */
 template<typename T>
 TransitionData<T> FSM_State_BalanceStand<T>::transition()
 {
-    // Switch FSM control mode
+    // 切换FSM控制模式
     switch(this->nextStateName)
     {
         case FSM_StateName::LOCOMOTION:
@@ -207,12 +178,12 @@ TransitionData<T> FSM_State_BalanceStand<T>::transition()
                       << std::endl;
     }
     
-    // Return the transition data to the FSM
+    // 向FSM返回转换数据
     return this->transitionData;
 }
 
 /**
- * Cleans up the state information on exiting the state.
+ * 清除退出状态时的状态信息
  */
 template<typename T>
 void FSM_State_BalanceStand<T>::onExit()
@@ -221,7 +192,7 @@ void FSM_State_BalanceStand<T>::onExit()
 }
 
 /**
- * Calculate the commands for the leg controllers for each of the feet.
+ * 为每只脚计算腿部控制器leg controller的命令
  */
 template<typename T>
 void FSM_State_BalanceStand<T>::BalanceStandStep()
@@ -235,37 +206,31 @@ void FSM_State_BalanceStand<T>::BalanceStandStep()
     if(this->_data->controlParameters->use_rc)
     {
         const rc_control_settings *rc_cmd = this->_data->_desiredStateCommand->rcCommand;
-        // Orientation
+        // 方向
         _wbc_data->pBody_RPY_des[0] = rc_cmd->rpy_des[0] * 1.4;
         _wbc_data->pBody_RPY_des[1] = rc_cmd->rpy_des[1] * 0.46;
         _wbc_data->pBody_RPY_des[2] -= rc_cmd->rpy_des[2];
         
-        // Height
+        // 高度
         _wbc_data->pBody_des[2] += 0.12 * rc_cmd->height_variation;
     }
     else
     {
-        // Orientation
-        _wbc_data->pBody_RPY_des[0] =
-                0.6 * this->_data->_desiredStateCommand->gamepadCommand->leftStickAnalog[0];
-        _wbc_data->pBody_RPY_des[1] =
-                0.6 * this->_data->_desiredStateCommand->gamepadCommand->rightStickAnalog[0];
-        _wbc_data->pBody_RPY_des[2] -=
-                this->_data->_desiredStateCommand->gamepadCommand->rightStickAnalog[1];
+        // 方向
+        _wbc_data->pBody_RPY_des[0] = 0.6 * this->_data->_desiredStateCommand->gamepadCommand->leftStickAnalog[0];
+        _wbc_data->pBody_RPY_des[1] = 0.6 * this->_data->_desiredStateCommand->gamepadCommand->rightStickAnalog[0];
+        _wbc_data->pBody_RPY_des[2] -= this->_data->_desiredStateCommand->gamepadCommand->rightStickAnalog[1];
         
-        // Height
-        _wbc_data->pBody_des[2] +=
-                0.12 * this->_data->_desiredStateCommand->gamepadCommand->rightStickAnalog[0];
-
+        // 高度
+        _wbc_data->pBody_des[2] += 0.12 * this->_data->_desiredStateCommand->gamepadCommand->rightStickAnalog[0];
 
 //        // 周期性上下动
 //        _wbc_data->pBody_des[2] = 0.05 * sin(2 * (_iter / 500)) + 0.3;
     
-    
     }
     _wbc_data->vBody_Ori_des.setZero();
     
-    for(size_t i(0); i < 4; ++i)
+    for(int i = 0; i < 4; ++i)
     {
         _wbc_data->pFoot_des[i].setZero();
         _wbc_data->vFoot_des[i].setZero();

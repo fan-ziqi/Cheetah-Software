@@ -10,10 +10,9 @@
 #include <Controllers/WBC_Ctrl/LocomotionCtrl/LocomotionCtrl.hpp>
 
 /**
- * Constructor for the FSM State that passes in state specific info to
- * the generic FSM State constructor.
+ * @ * FSM状态的构造函数，它将特定于状态的信息传递给通用的FSM状态构造函数。
  *
- * @param _controlFSMData holds all of the relevant control data
+ * @param _controlFSMData 保存所有相关的控制数据
  */
 template<typename T>
 FSM_State_Vision<T>::FSM_State_Vision(
@@ -126,7 +125,7 @@ void FSM_State_Vision<T>::onEnter()
 }
 
 /**
- * Calls the functions to be executed on each control loop iteration.
+ * 调用要在每个控制循环迭代上执行的函数
  */
 template<typename T>
 void FSM_State_Vision<T>::run()
@@ -357,10 +356,9 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> &des_vel)
 }
 
 /**
- * Manages which states can be transitioned into either by the user
- * commands or state event triggers.
+ * 管理可以通过用户命令或状态事件触发器转换到哪些状态
  *
- * @return the enumerated FSM state name to transition into
+ * @return 要转换到的FSM枚举名称
  */
 template<typename T>
 FSM_StateName FSM_State_Vision<T>::checkTransition()
@@ -368,7 +366,7 @@ FSM_StateName FSM_State_Vision<T>::checkTransition()
     // Get the next state
     iter++;
     
-    // Switch FSM control mode
+    // 切换FSM控制模式
     switch((int) this->_data->controlParameters->control_mode)
     {
         case K_VISION:
@@ -383,7 +381,7 @@ FSM_StateName FSM_State_Vision<T>::checkTransition()
             // Requested change to BALANCE_STAND
             this->nextStateName = FSM_StateName::BALANCE_STAND;
             
-            // Transition time is immediate
+            // 立即转换
             this->transitionDuration = 0.0;
             
             break;
@@ -392,7 +390,7 @@ FSM_StateName FSM_State_Vision<T>::checkTransition()
             // Requested change to BALANCE_STAND
             this->nextStateName = FSM_StateName::PASSIVE;
             
-            // Transition time is immediate
+            // 立即转换
             this->transitionDuration = 0.0;
             
             break;
@@ -408,20 +406,19 @@ FSM_StateName FSM_State_Vision<T>::checkTransition()
                       << this->_data->controlParameters->control_mode << std::endl;
     }
     
-    // Return the next state name to the FSM
+    // 将下一个状态名返回给 FSM
     return this->nextStateName;
 }
 
 /**
- * Handles the actual transition for the robot between states.
- * Returns true when the transition is completed.
+ * 处理机器人在状态之间的实际转换
  *
- * @return true if transition is complete
+ * @return true 如果转换完成
  */
 template<typename T>
 TransitionData<T> FSM_State_Vision<T>::transition()
 {
-    // Switch FSM control mode
+    // 切换FSM控制模式
     switch(this->nextStateName)
     {
         case FSM_StateName::BALANCE_STAND:
@@ -459,12 +456,12 @@ TransitionData<T> FSM_State_Vision<T>::transition()
                       << std::endl;
     }
     
-    // Return the transition data to the FSM
+    // 向FSM返回转换数据
     return this->transitionData;
 }
 
 /**
- * Cleans up the state information on exiting the state.
+ * 清除退出状态时的状态信息
  */
 template<typename T>
 void FSM_State_Vision<T>::onExit()

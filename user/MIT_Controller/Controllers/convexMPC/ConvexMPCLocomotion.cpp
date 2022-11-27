@@ -41,7 +41,7 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc,
     dtMPC = dt * iterationsBetweenMPC;
     default_iterations_between_mpc = iterationsBetweenMPC;
     printf("[Convex MPC] dt: %.3f iterations: %d, dtMPC: %.3f\n", dt, iterationsBetweenMPC, dtMPC);
-    setup_problem(dtMPC, horizonLength, 0.4, 120);
+    setup_problem(dtMPC, horizonLength, 0.4, 150);//120
     //setup_problem(dtMPC, horizonLength, 0.4, 650); // DH
     rpy_comp[0] = 0;
     rpy_comp[1] = 0;

@@ -405,7 +405,7 @@ void MiniCheetahHardwareBridge::run()
 #endif
 
 #ifdef USE_KEYBOARD
-//    _keyboardThread = std::thread(&MiniCheetahHardwareBridge::run_keyboard, this);
+    _keyboardThread = std::thread(&MiniCheetahHardwareBridge::run_keyboard, this);
 #endif
     
     //每隔1秒循环
@@ -460,6 +460,18 @@ void HardwareBridge::run_keyboard()
         if(kbhit())
         {
             c = fgetc(stdin);
+            printf("0: switch mode to OFF\r\n");
+            printf("6: switch mode to RECOVERY_STAND\r\n");
+            printf("3: switch mode to BALANCE_STAND\r\n");
+            printf("4: switch mode to LOCOMOTION\r\n");
+            printf("q: height+0.1\r\n");
+            printf("z: height-0.1\r\n");
+            printf("w: roll+0.1\r\n");
+            printf("x: roll-0.1\r\n");
+            printf("e: pitch+0.1\r\n");
+            printf("c: pitch-0.1\r\n");
+            printf("r: yaw+0.1\r\n");
+            printf("v: yaw-0.1\r\n");
             switch(c)
             {
                 case '0':
@@ -479,35 +491,35 @@ void HardwareBridge::run_keyboard()
                     rc_control.mode = 11;
                     break;
                 case 'q':
-                    printf("UP\r\n");
+                    printf("height+0.1\r\n");
                     rc_control.height_variation += 0.1;
                     break;
                 case 'z':
-                    printf("DOWN\r\n");
+                    printf("height-0.1\r\n");
                     rc_control.height_variation -= 0.1;
                     break;
                 case 'w':
-                    printf("rpy_des[0]+=0.1\r\n");
+                    printf("roll+0.1\r\n");
                     rc_control.rpy_des[0] += 0.1;
                     break;
                 case 'x':
-                    printf("rpy_des[0]-=0.1\r\n");
+                    printf("roll-0.1\r\n");
                     rc_control.rpy_des[0] -= 0.1;
                     break;
                 case 'e':
-                    printf("rpy_des[1]+=0.1\r\n");
+                    printf("pitch+0.1\r\n");
                     rc_control.rpy_des[1] += 0.1;
                     break;
                 case 'c':
-                    printf("rpy_des[1]-=0.1\r\n");
+                    printf("pitch-0.1\r\n");
                     rc_control.rpy_des[1] -= 0.1;
                     break;
                 case 'r':
-                    printf("rpy_des[2]+=0.1\r\n");
+                    printf("yaw+0.1\r\n");
                     rc_control.rpy_des[2] += 0.1;
                     break;
                 case 'v':
-                    printf("rpy_des[2]-=0.1\r\n");
+                    printf("yaw-0.1\r\n");
                     rc_control.rpy_des[2] -= 0.1;
                     break;
                 default:

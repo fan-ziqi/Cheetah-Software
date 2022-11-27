@@ -847,9 +847,13 @@ cd /mnt/UDISK/cyberdog_motor_sdk/robot-software/build/
 
 ```
 # 重启运控程序:
-ssh root@192.168.55.233 "ps | grep -E 'mit_ctrl' | grep -v grep | awk '{print \$1}' | xargs kill -9" #需先于主进程暂停，避免急停
+ssh root@192.168.55.233 "ps | grep -E 'mit_ctrl' | grep -v grep | awk '{print \$1}' | xargs kill -9"
 ssh root@192.168.55.233 "ps | grep -E 'manager|ctrl|imu_online' | grep -v grep | awk '{print \$1}' | xargs kill -9"
 ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/robot-software/build;/mnt/UDISK/manager /mnt/UDISK/ >> /mnt/UDISK/manager_log/manager.log 2>&1 &"
+
+
+ssh root@192.168.55.233 "ps | grep -E 'mit_ctrl' | grep -v grep | awk '{print \$1}' | xargs kill -9" && ssh root@192.168.55.233 "ps | grep -E 'manager|ctrl|imu_online' | grep -v grep | awk '{print \$1}' | xargs kill -9" && ssh root@192.168.55.233 "export LD_LIBRARY_PATH=/mnt/UDISK/robot-software/build;/mnt/UDISK/manager /mnt/UDISK/ >> /mnt/UDISK/manager_log/manager.log 2>&1 &"
+
 
 # 重启运控板系统:
 ssh root@192.168.55.233 "reboot"
