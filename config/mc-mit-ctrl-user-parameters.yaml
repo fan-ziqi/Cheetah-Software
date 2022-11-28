@@ -1,8 +1,8 @@
 # Generated on Mon Aug  5 18:20:08 2019
 __collection-name__: user-parameters
 
-Kd_joint: [ 1, 0.2, 0.2 ] #
 Kp_joint: [ 3, 3, 3 ] #
+Kd_joint: [ 1, 0.2, 0.2 ] #
 
 Kp_body: [ 100, 100, 100 ] #
 Kd_body: [ 10, 10, 20 ] #
@@ -26,12 +26,14 @@ use_jcqp: 0 #
 use_wbc: 1 #
 
 # Swing leg parameters
-Swing_Kp_cartesian: [ 350, 350, 75 ]
-Swing_Kd_cartesian: [ 5.5, 5.5, 5.5 ]
+#Swing_Kp_cartesian: [ 350, 350, 75 ]
+#Swing_Kd_cartesian: [ 5.5, 5.5, 5.5 ]
+Swing_Kp_cartesian: [ 700., 700., 700. ]
+Swing_Kd_cartesian: [ 14.,  14.,  14. ]
 Swing_Kp_joint: [ 0, 0, 0 ]
-Swing_Kd_joint: [ 0.2, 0.2, 0.2 ]
+Swing_Kd_joint: [ 0.2, 0.2, 0.2 ] #
 Swing_step_offset: [ 0,0.05,-0.003 ]
-Swing_traj_height: 0.07
+Swing_traj_height: 0.09 #0.07
 Swing_use_tau_ff: 0
 
 # Two Leg Stance parameters

@@ -36,8 +36,8 @@ void FSM_State<T>::jointPDControl(
         int leg, Vec3<T> qDes, Vec3<T> qdDes)
 {
     
-    kpMat << 80, 0, 0, 0, 80, 0, 0, 0, 80;
-    kdMat << 1, 0, 0, 0, 1, 0, 0, 0, 1;
+    kpMat << 100, 0, 0, 0, 100, 0, 0, 0, 100;
+    kdMat << 2, 0, 0, 0, 2, 0, 0, 0, 2;
     
     _data->_legController->commands[leg].kpJoint = kpMat;
     _data->_legController->commands[leg].kdJoint = kdMat;

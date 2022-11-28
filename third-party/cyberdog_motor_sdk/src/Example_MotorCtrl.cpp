@@ -27,8 +27,8 @@ private:
     bool first_run = true;
     long long count = 0;
     float init_q[12];
-    float target1_q[3] = {0 / 57.3, 80 / 57.3, -135 / 57.3};
-    float target2_q[3] = {0 / 57.3, 45 / 57.3, -90 / 57.3};
+    float target1_q[3] = {0 / 57.3, -80 / 57.3, 135 / 57.3};
+    float target2_q[3] = {0 / 57.3, -45 / 57.3, 90 / 57.3};
     
     void UserCode()
     {
@@ -46,7 +46,7 @@ private:
         {
             for(int i = 0; i < 12; i++)
                 init_q[i] = robot_data.q[i];
-            if(init_q[2] < -0.1 && init_q[5] < -0.1 && init_q[8] < -0.1 && init_q[11] < -0.1)
+            if(init_q[2] > 0.1 && init_q[5] > 0.1 && init_q[8] > 0.1 && init_q[11] > 0.1)
             {
                 first_run = false;
                 count = 0;

@@ -32,11 +32,15 @@ FSM_State_RecoveryStand<T>::FSM_State_RecoveryStand(ControlFSMData<T> *_controlF
     fold_jpos[2] << -0.0f, -1.4f, 2.7f;
     fold_jpos[3] << 0.0f, -1.4f, 2.7f;
     // Stand Up
-    for(size_t i(0); i < 4; ++i)
-    {
-        //stand_jpos[i] << 0.f, -.9425f, 1.885f;
-        stand_jpos[i] << 0.f, -.8f, 1.6f;
-    }
+//    for(size_t i(0); i < 4; ++i)
+//    {
+//        //stand_jpos[i] << 0.f, -.9425f, 1.885f;
+//        stand_jpos[i] << 0.0f, -0.8f, 1.6f;
+//    }
+    stand_jpos[0] << -0.0f, -0.8f, 1.6f;
+    stand_jpos[1] << 0.0f, -0.8f, 1.6f;
+    stand_jpos[2] << -0.0f, -0.8f, 1.6f;
+    stand_jpos[3] << 0.0f, -0.8f, 1.6f;
     // Rolling
     rolling_jpos[0] << 1.5f, -1.6f, 2.77f;
     rolling_jpos[1] << 1.3f, -3.1f, 2.77f;
@@ -65,8 +69,7 @@ void FSM_State_RecoveryStand<T>::onEnter()
         initial_jpos[i] = this->_data->_legController->datas[i].q;
     }
     
-    T body_height =
-            this->_data->_stateEstimator->getResult().position[2];
+    T body_height = this->_data->_stateEstimator->getResult().position[2];
     
     _flag = FoldLegs;
     if(!_UpsideDown())
@@ -144,23 +147,24 @@ void FSM_State_RecoveryStand<T>::_SetJPosInterPts(
     
     // do control
     this->jointPDControl(leg, inter_pos, zero_vec3);
-    
-    //if(curr_iter == 0){ 
-    //printf("flag:%d, curr iter: %lu, state iter: %llu, motion start iter: %d\n",
-    //_flag, curr_iter, _state_iter, _motion_start_iter);
-    //printf("inter pos: %f, %f, %f\n", inter_pos[0], inter_pos[1], inter_pos[2]);
-    //}
-    //if(curr_iter == max_iter){ 
-    //printf("flag:%d, curr iter: %lu, state iter: %llu, motion start iter: %d\n",
-    //_flag, curr_iter, _state_iter, _motion_start_iter);
-    //printf("inter pos: %f, %f, %f\n", inter_pos[0], inter_pos[1], inter_pos[2]);
-    //}
+
+//    if(curr_iter == 0)
+//    {
+//        printf("flag:%d, curr iter: %lu, state iter: %llu, motion start iter: %d\n",
+//               _flag, curr_iter, _state_iter, _motion_start_iter);
+//        printf("inter pos: %f, %f, %f\n", inter_pos[0], inter_pos[1], inter_pos[2]);
+//    }
+//    if(curr_iter == max_iter)
+//    {
+//        printf("flag:%d, curr iter: %lu, state iter: %llu, motion start iter: %d\n",
+//               _flag, curr_iter, _state_iter, _motion_start_iter);
+//        printf("inter pos: %f, %f, %f\n", inter_pos[0], inter_pos[1], inter_pos[2]);
+//    }
 }
 
 template<typename T>
 void FSM_State_RecoveryStand<T>::_RollOver(const int &curr_iter)
 {
-    
     for(size_t i(0); i < 4; ++i)
     {
         _SetJPosInterPts(curr_iter, rollover_ramp_iter, i,
@@ -178,7 +182,8 @@ void FSM_State_RecoveryStand<T>::_RollOver(const int &curr_iter)
 template<typename T>
 void FSM_State_RecoveryStand<T>::_StandUp(const int &curr_iter)
 {
-    T body_height = this->_data->_stateEstimator->getResult().position[2];
+    T body_height = this->_data->_stateEstimator->getResult().position[2];//0.116
+    
     bool something_wrong(false);
     
     if(_UpsideDown() || (body_height < 0.1))
@@ -208,7 +213,7 @@ void FSM_State_RecoveryStand<T>::_StandUp(const int &curr_iter)
                              leg, initial_jpos[leg], stand_jpos[leg]);
         }
     }
-    // feed forward mass of robot.
+    // 机器人的前馈质量
     Vec4<T> se_contactState(0.5, 0.5, 0.5, 0.5);
     this->_data->_stateEstimator->setContactPhase(se_contactState);
     
@@ -217,11 +222,10 @@ void FSM_State_RecoveryStand<T>::_StandUp(const int &curr_iter)
 template<typename T>
 void FSM_State_RecoveryStand<T>::_FoldLegs(const int &curr_iter)
 {
-    
-    for(size_t i(0); i < 4; ++i)
+    for(size_t leg(0); leg < 4; ++leg)
     {
-        _SetJPosInterPts(curr_iter, fold_ramp_iter, i,
-                         initial_jpos[i], fold_jpos[i]);
+        _SetJPosInterPts(curr_iter, fold_ramp_iter, leg,
+                         initial_jpos[leg], fold_jpos[leg]);
     }
     if(curr_iter >= fold_ramp_iter + fold_settle_iter)
     {

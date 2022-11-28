@@ -353,6 +353,7 @@ void MiniCheetahHardwareBridge::run()
     _robotRunner->visualizationData = &_visualizationData;
     _robotRunner->cheetahMainVisualization = &_mainCheetahVisualization;
     
+    _robotRunner->init();
     _firstRun = false;
     
     // 初始化控制线程
@@ -524,7 +525,7 @@ void HardwareBridge::run_keyboard()
                     break;
             }
         }
-        usleep(5000);
+        usleep(10000);
     }
     
 }
@@ -811,7 +812,7 @@ void MiniCheetahHardwareBridge::CyberdogProcessData()
     while(true)
     {
         count++;
-        if(count % 100000 == 0)
+        if(count % 200000 == 0)
         {
             count = 0;
             printf("interval:---------%.4f-------------\n", _cyberdogInterface->cyberdogData.ctrl_topic_interval);

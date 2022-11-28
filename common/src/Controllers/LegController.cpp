@@ -194,19 +194,19 @@ void LegController<T>::updateCommand(CyberdogCmd *cyberdogCmd)
         // Torque 足端力转换成关节力矩tau = J^T*f
         legTorque += datas[leg].J.transpose() * footForce;
         
-        // spi设置关节力矩
+        // 设置关节力矩
         cyberdogCmd->tau_des[0 + leg * 3] = legTorque(0); // abad
         cyberdogCmd->tau_des[1 + leg * 3] = legTorque(1); // hip
         cyberdogCmd->tau_des[2 + leg * 3] = legTorque(2); // knee
         
         // 关节空间的PD参数
         cyberdogCmd->kd_des[0 + leg * 3] = commands[leg].kdJoint(0, 0);
-        cyberdogCmd->kd_des[1 + leg * 3] = commands[leg].kdJoint(1, 0);
-        cyberdogCmd->kd_des[2 + leg * 3] = commands[leg].kdJoint(2, 0);
+        cyberdogCmd->kd_des[1 + leg * 3] = commands[leg].kdJoint(1, 1);
+        cyberdogCmd->kd_des[2 + leg * 3] = commands[leg].kdJoint(2, 2);
         
         cyberdogCmd->kp_des[0 + leg * 3] = commands[leg].kpJoint(0, 0);
-        cyberdogCmd->kp_des[1 + leg * 3] = commands[leg].kpJoint(1, 0);
-        cyberdogCmd->kp_des[2 + leg * 3] = commands[leg].kpJoint(2, 0);
+        cyberdogCmd->kp_des[1 + leg * 3] = commands[leg].kpJoint(1, 1);
+        cyberdogCmd->kp_des[2 + leg * 3] = commands[leg].kpJoint(2, 2);
         
         // 期望关节位置
         cyberdogCmd->q_des[0 + leg * 3] = commands[leg].qDes(0);
