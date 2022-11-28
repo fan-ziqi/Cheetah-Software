@@ -491,8 +491,6 @@ void LegController<T>::updateCommand(CyberdogCmd *cyberdogCmd)
 
 ### 键盘控制
 
-注意！！！测试未通过 TODO
-
 在`robot/src/HardwareBridge.cpp`中，在`void MiniCheetahHardwareBridge::run()`函数中新建键盘读取任务
 
 ```cpp
@@ -502,16 +500,46 @@ _keyboardThread = std::thread(&MiniCheetahHardwareBridge::run_keyboard, this);
 其中`run_keyboard()`函数内容为（由于是非阻塞读取键盘输入，需要引入头文件`#include <termios.h>`）
 
 ```cpp
+static bool kbhit()
+{
+    termios term;
+    tcgetattr(0, &term);
+    
+    termios term2 = term;
+    term2.c_lflag &= ~ICANON;
+    tcsetattr(0, TCSANOW, &term2);
+    
+    int byteswaiting;
+    ioctl(0, FIONREAD, &byteswaiting);
+    
+    tcsetattr(0, TCSANOW, &term);
+    
+    return byteswaiting > 0;
+}
+
 extern rc_control_settings rc_control;
 
 void HardwareBridge::run_keyboard()
 {
     int c;
+    // Check for keyboard input
     while(true)
     {
         if(kbhit())
         {
             c = fgetc(stdin);
+            printf("0: switch mode to OFF\r\n");
+            printf("6: switch mode to RECOVERY_STAND\r\n");
+            printf("3: switch mode to BALANCE_STAND\r\n");
+            printf("4: switch mode to LOCOMOTION\r\n");
+            printf("q: height+0.1\r\n");
+            printf("z: height-0.1\r\n");
+            printf("w: roll+0.1\r\n");
+            printf("x: roll-0.1\r\n");
+            printf("e: pitch+0.1\r\n");
+            printf("c: pitch-0.1\r\n");
+            printf("r: yaw+0.1\r\n");
+            printf("v: yaw-0.1\r\n");
             switch(c)
             {
                 case '0':
@@ -529,6 +557,38 @@ void HardwareBridge::run_keyboard()
                 case '4':
                     printf("switch mode to LOCOMOTION\r\n");
                     rc_control.mode = 11;
+                    break;
+                case 'q':
+                    printf("height+0.1\r\n");
+                    rc_control.height_variation += 0.1;
+                    break;
+                case 'z':
+                    printf("height-0.1\r\n");
+                    rc_control.height_variation -= 0.1;
+                    break;
+                case 'w':
+                    printf("roll+0.1\r\n");
+                    rc_control.rpy_des[0] += 0.1;
+                    break;
+                case 'x':
+                    printf("roll-0.1\r\n");
+                    rc_control.rpy_des[0] -= 0.1;
+                    break;
+                case 'e':
+                    printf("pitch+0.1\r\n");
+                    rc_control.rpy_des[1] += 0.1;
+                    break;
+                case 'c':
+                    printf("pitch-0.1\r\n");
+                    rc_control.rpy_des[1] -= 0.1;
+                    break;
+                case 'r':
+                    printf("yaw+0.1\r\n");
+                    rc_control.rpy_des[2] += 0.1;
+                    break;
+                case 'v':
+                    printf("yaw-0.1\r\n");
+                    rc_control.rpy_des[2] -= 0.1;
                     break;
                 default:
                     break;
