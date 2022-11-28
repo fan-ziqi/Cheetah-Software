@@ -203,8 +203,7 @@ void ControlFSM<T>::runFSM()
                 nextState = getNextState(nextStateName);
                 
                 // 输出转换初始化信息
-                //printInfo(1);
-                
+                printInfo(1);
             }
             else
             {
@@ -229,7 +228,7 @@ void ControlFSM<T>::runFSM()
                 currentState->onExit();
                 
                 // 输出最终的转换信息
-                //printInfo(2);
+                printInfo(2);
                 
                 // 完成状态转换
                 currentState = nextState;

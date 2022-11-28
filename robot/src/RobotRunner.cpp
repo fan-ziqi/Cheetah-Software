@@ -242,7 +242,7 @@ void RobotRunner::setupStep()
     // 为新一次的循环设置设置legController
     _legController->zeroCommand(); //腿部控制命令清零
     _legController->setEnabled(true); //开启腿部控制
-    _legController->setMaxTorqueCheetah3(208.5); //设置最大力矩
+//    _legController->setMaxTorqueCheetah3(208.5); //Cheetah3设置最大力矩
     
     // 状态估计器
     // check transition to cheater mode:

@@ -17,16 +17,15 @@ template<typename T>
 FSM_State_RecoveryStand<T>::FSM_State_RecoveryStand(ControlFSMData<T> *_controlFSMData)
         : FSM_State<T>(_controlFSMData, FSM_StateName::STAND_UP, "STAND_UP")
 {
-    // Do nothing
-    // Set the pre controls safety checks
+    // 设置控制前的安全检查
     this->checkSafeOrientation = false;
     
-    // Post control safety checks
+    // 设置控制后安全检查
     this->checkPDesFoot = false;
     this->checkForceFeedForward = false;
     
     zero_vec3.setZero();
-    // goal configuration
+    // 目标配置
     // Folding
     fold_jpos[0] << -0.0f, -1.4f, 2.7f;
     fold_jpos[1] << 0.0f, -1.4f, 2.7f;
@@ -189,9 +188,8 @@ void FSM_State_RecoveryStand<T>::_StandUp(const int &curr_iter)
     
     if((curr_iter > floor(standup_ramp_iter * 0.7)) && something_wrong)
     {
-        // If body height is too low because of some reason
-        // even after the stand up motion is almost over
-        // (Can happen when E-Stop is engaged in the middle of Other state)
+        // 如果由于某种原因，即使在站立动作几乎结束后，身体高度仍然过低
+        // (当急停装置处于“其他”状态时，可能会发生这种情况)
         for(size_t i(0); i < 4; ++i)
         {
             initial_jpos[i] = this->_data->_legController->datas[i].q;
@@ -201,7 +199,6 @@ void FSM_State_RecoveryStand<T>::_StandUp(const int &curr_iter)
         
         printf("[Recovery Balance - Warning] body height is still too low (%f) or UpsideDown (%d); Folding legs \n",
                body_height, _UpsideDown());
-        
     }
     else
     {
@@ -212,9 +209,6 @@ void FSM_State_RecoveryStand<T>::_StandUp(const int &curr_iter)
         }
     }
     // feed forward mass of robot.
-    //for(int i = 0; i < 4; i++)
-    //this->_data->_legController->commands[i].forceFeedForward = f_ff;
-    //Vec4<T> se_contactState(0.,0.,0.,0.);
     Vec4<T> se_contactState(0.5, 0.5, 0.5, 0.5);
     this->_data->_stateEstimator->setContactPhase(se_contactState);
     

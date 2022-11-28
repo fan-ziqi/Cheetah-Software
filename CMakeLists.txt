@@ -16,7 +16,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
 set(BUILD_TYPE_RELEASE TRUE)
 
-option(NO_SIM "Do not build simulator" OFF)
+option(NO_SIM "Do not build simulator" ON)
 
 if (MINI_CHEETAH_BUILD)
     SET(THIS_COM "/mnt/UDISK/cyberdog_motor_sdk/robot-software/")
@@ -39,19 +39,23 @@ else (MINI_CHEETAH_BUILD)
             ${CMAKE_BINARY_DIR}/Configuration.h)
 
     if (CMAKE_SYSTEM_NAME MATCHES Linux)
-        set(CMAKE_CXX_FLAGS "-O3 -no-pie -march=native -ggdb -Wall \
-    -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
-    -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
-    -Wshadow -Wsign-promo")
+        #        set(CMAKE_CXX_FLAGS "-O3 -no-pie -march=native -ggdb -Wall \
+        #    -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
+        #    -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
+        #    -Wshadow -Wsign-promo")
+        set(CMAKE_CXX_FLAGS "-Os -Wall -s")
+        set(CMAKE_C_FLAGS "-Os -Wall -s")
     elseif (APPLE)
-        set(CMAKE_CXX_FLAGS "-O3 -march=native -ggdb -Wall \
-    -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
-    -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
-    -Wshadow -Wsign-promo")
+        #        set(CMAKE_CXX_FLAGS "-O3 -march=native -ggdb -Wall \
+        #    -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
+        #    -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
+        #    -Wshadow -Wsign-promo")
+        set(CMAKE_CXX_FLAGS "-Os -Wall -s")
+        set(CMAKE_C_FLAGS "-Os -Wall -s")
         include_directories("/usr/local/include/")   # lcm includes
     endif ()
 
-    set(CMAKE_C_FLAGS "-O3  -ggdb  -march=native -std=gnu99 -I.")
+    #    set(CMAKE_C_FLAGS "-O3  -ggdb  -march=native -std=gnu99 -I.")
     message("**** Mini-Cheetah build disabled ****")
 endif (MINI_CHEETAH_BUILD)
 

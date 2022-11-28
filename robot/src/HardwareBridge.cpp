@@ -334,7 +334,6 @@ void MiniCheetahHardwareBridge::run()
         }
     }
     
-    
     printf("[Hardware Bridge] Got all parameters, starting up!\n");
     
     //创建和配置RobotRunner对象（任务对象）
@@ -362,6 +361,7 @@ void MiniCheetahHardwareBridge::run()
     statusTask.start();
 
 #ifdef CYBERDOG
+    // cyberdog的imu数据从这个线程里获取
     _cyberdogThread = std::thread(&MiniCheetahHardwareBridge::CyberdogProcessData, this);
 #else
     // 启动spi通信任务，spi通信负责传输控制命令和接收传感器数据
@@ -385,8 +385,6 @@ void MiniCheetahHardwareBridge::run()
             &taskManager, .0167, "lcm-vis",
             &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
     visualizationLCMTask.start();
-    
-    
     
     // 启动惯性导航日志任务
     PeriodicMemberFunction<MiniCheetahHardwareBridge> microstrainLogger(
