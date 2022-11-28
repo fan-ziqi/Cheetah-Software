@@ -338,7 +338,7 @@ void MiniCheetahHardwareBridge::run()
     printf("[Hardware Bridge] Got all parameters, starting up!\n");
     
     //创建和配置RobotRunner对象（任务对象）
-    _robotRunner = new RobotRunner(_controller, &taskManager, _robotParams.controller_dt, "robot-control");
+    _robotRunner = new RobotRunner(_controller, &taskManager, _robotParams.controller_dt, "robot-control"); //500HZ
     
     _robotRunner->driverCommand = &_gamepadCommand;
 #ifdef CYBERDOG
@@ -813,7 +813,7 @@ void MiniCheetahHardwareBridge::CyberdogProcessData()
     while(true)
     {
         count++;
-        if(count % 100000000 == 0)
+        if(count % 100000 == 0)
         {
             count = 0;
             printf("interval:---------%.4f-------------\n", _cyberdogInterface->cyberdogData.ctrl_topic_interval);
@@ -875,7 +875,7 @@ void MiniCheetahHardwareBridge::CyberdogProcessData()
         {
             _vectorNavData.gyro(i) = _cyberdogInterface->cyberdogData.omega[i];
         }
-        usleep(5000);
+        usleep(1);
     }
 }
 

@@ -799,6 +799,9 @@ docker run -it --rm --name cyberdog -v /home/fzq614/ROS_Workspaces/Cheetah-Softw
 
 cd /work/build_farm/workspace/cyberdog/
 mkdir onboard-build && cd onboard-build
+
+cd /work/build_farm/workspace/cyberdog/onboard-build
+
 cmake -DCMAKE_TOOLCHAIN_FILE=/usr/xcc/aarch64-openwrt-linux-gnu/Toolchain.cmake -DMINI_CHEETAH_BUILD=TRUE -DNO_SIM=TRUE ..
 make -j16 #指定交叉编译工具链并编译
 exit
