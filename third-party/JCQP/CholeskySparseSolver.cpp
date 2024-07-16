@@ -9,7 +9,7 @@
 #include "Timer.h"
 #include "amd.h"
 #include <iostream>
-#include <immintrin.h>
+//#include <immintrin.h>
 
 
 template<typename T>

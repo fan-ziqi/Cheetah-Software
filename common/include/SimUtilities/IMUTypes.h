@@ -11,6 +11,14 @@
  * Mini Cheetah's IMU
  */
 struct VectorNavData {
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    VectorNavData() {
+        accelerometer = Vec3< float >( 0, 0, 9.81 );
+        gyro.setZero();
+        quat = Quat< float >( 0, 0, 0, 1 );
+    }
   Vec3<float> accelerometer;
   Vec3<float> gyro;
   Quat<float> quat;

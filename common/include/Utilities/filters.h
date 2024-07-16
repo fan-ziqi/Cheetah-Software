@@ -18,6 +18,9 @@ class butterworth_filter : public filter<T> {
   virtual ~butterworth_filter(void);
   virtual void input(T input_value);
   virtual T output(void);
+  virtual void SetTimeStep( T dt );
+  virtual void SetSampleNum( int num_sample );
+  virtual void SetCutoffFrequency( T cutoff_frequency );
   virtual void clear(void);
 
  private:
@@ -36,6 +39,9 @@ class digital_lp_filter : public filter<T> {
   virtual ~digital_lp_filter(void);
   virtual void input(T input_value);
   virtual T output(void);
+  virtual void Update( void );
+  virtual void SetWc( T w_c );
+  virtual void SetTs( T t_s );
   virtual void clear(void);
 
  private:
@@ -43,6 +49,8 @@ class digital_lp_filter : public filter<T> {
   T Lpf_out_prev[2];
   T Lpf_in1, Lpf_in2, Lpf_in3, Lpf_out1, Lpf_out2;
   T lpf_out;
+  T wc_;
+  T ts_;
 };
 
 template <typename T>
@@ -52,6 +60,8 @@ class moving_average_filter : public filter<T> {
   virtual ~moving_average_filter();
   virtual void input(T input_value);
   virtual T output(void);
+  virtual void SetDataNum( int num_data );
+  virtual int  GetDataNum( void );
   virtual void clear(void);
 
  private:

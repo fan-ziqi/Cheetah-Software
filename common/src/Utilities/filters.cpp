@@ -28,6 +28,16 @@ T moving_average_filter<T>::output() {
   return sum_ / num_data_;
 }
 
+template < typename T > void moving_average_filter < T >::SetDataNum( int num_data ) {
+    clear();
+    buffer_ = new T[ num_data ];
+    memset( ( void* )buffer_, 0.0, sizeof( T ) * num_data );
+}
+
+template < typename T > int moving_average_filter< T >::GetDataNum( void ) {
+    return num_data_;
+}
+
 template <typename T>
 void moving_average_filter<T>::clear(void) {
   sum_ = 0.0;
@@ -86,6 +96,14 @@ T butterworth_filter<T>::output(void) {
   return mValue;
 }
 
+template < typename T > void butterworth_filter< T >::SetTimeStep( T dt ) {
+    mDt = dt;
+}
+template < typename T > void butterworth_filter< T >::SetSampleNum( int num_sample ) {
+    mNumSample = num_sample;
+}
+
+
 template <typename T>
 void butterworth_filter<T>::clear(void) {
   for (int i(0); i < mNumSample; ++i) {
@@ -93,24 +111,49 @@ void butterworth_filter<T>::clear(void) {
   }
 }
 
+template < typename T > void butterworth_filter< T >::SetCutoffFrequency( T cutoff_frequency ) {
+    mCutoffFreq = cutoff_frequency;
+}
+
 template class butterworth_filter<double>;
 template class butterworth_filter<float>;
 
 /*============================================================================*/
 
-template <typename T>
-digital_lp_filter<T>::digital_lp_filter(T w_c, T t_s) {
-  Lpf_in_prev[0] = Lpf_in_prev[1] = 0;
-  Lpf_out_prev[0] = Lpf_out_prev[1] = 0;
-  Lpf_in1 = 0, Lpf_in2 = 0, Lpf_in3 = 0, Lpf_out1 = 0, Lpf_out2 = 0;
-  float den = 2500 * t_s * t_s * w_c * w_c + 7071 * t_s * w_c + 10000;
 
-  Lpf_in1 = 2500 * t_s * t_s * w_c * w_c / den;
-  Lpf_in2 = 5000 * t_s * t_s * w_c * w_c / den;
-  Lpf_in3 = 2500 * t_s * t_s * w_c * w_c / den;
-  Lpf_out1 = -(5000 * t_s * t_s * w_c * w_c - 20000) / den;
-  Lpf_out2 = -(2500 * t_s * t_s * w_c * w_c - 7071 * t_s * w_c + 10000) / den;
+template < typename T > digital_lp_filter< T >::digital_lp_filter( T w_c, T t_s ) {
+    Lpf_in_prev[ 0 ] = Lpf_in_prev[ 1 ] = 0;
+    Lpf_out_prev[ 0 ] = Lpf_out_prev [1 ] = 0;
+    Lpf_in1 = 0, Lpf_in2 = 0, Lpf_in3 = 0, Lpf_out1= 0, Lpf_out2 = 0;
+    wc_ = w_c;
+    ts_ = t_s;
+    Update();
 }
+
+template < typename T > void digital_lp_filter< T >::Update( void ) {
+    float den = 2500 * ts_ * ts_ * wc_ * wc_ + 7071 * ts_ * wc_ + 10000;
+
+    Lpf_in1 = 2500 * ts_ * ts_ * wc_ * wc_ / den;
+    Lpf_in2  = 5000 * ts_ * ts_ * wc_ * wc_ / den;
+    Lpf_in3 = 2500 * ts_ * ts_ * wc_ * wc_ / den;
+    Lpf_out1 = -( 5000 * ts_ * ts_ * wc_ * wc_ - 20000 ) / den;
+    Lpf_out2= -( 2500 * ts_ * ts_ * wc_ * wc_ - 7071 * ts_ * wc_ + 10000 ) / den;
+}
+
+
+// template <typename T>
+// digital_lp_filter<T>::digital_lp_filter(T w_c, T t_s) {
+//   Lpf_in_prev[0] = Lpf_in_prev[1] = 0;
+//   Lpf_out_prev[0] = Lpf_out_prev[1] = 0;
+//   Lpf_in1 = 0, Lpf_in2 = 0, Lpf_in3 = 0, Lpf_out1 = 0, Lpf_out2 = 0;
+//   float den = 2500 * t_s * t_s * w_c * w_c + 7071 * t_s * w_c + 10000;
+
+//   Lpf_in1 = 2500 * t_s * t_s * w_c * w_c / den;
+//   Lpf_in2 = 5000 * t_s * t_s * w_c * w_c / den;
+//   Lpf_in3 = 2500 * t_s * t_s * w_c * w_c / den;
+//   Lpf_out1 = -(5000 * t_s * t_s * w_c * w_c - 20000) / den;
+//   Lpf_out2 = -(2500 * t_s * t_s * w_c * w_c - 7071 * t_s * w_c + 10000) / den;
+// }
 
 template <typename T>
 digital_lp_filter<T>::~digital_lp_filter(void) {}
@@ -130,6 +173,16 @@ void digital_lp_filter<T>::input(T lpf_in) {
 template <typename T>
 T digital_lp_filter<T>::output(void) {
   return lpf_out;
+}
+
+template < typename T > void digital_lp_filter< T >::SetTs( T t_s ) {
+    ts_ = t_s;
+    Update();
+}
+
+template < typename T > void digital_lp_filter< T >::SetWc( T w_c ) {
+    wc_ = w_c;
+    Update();
 }
 
 template <typename T>

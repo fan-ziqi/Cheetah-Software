@@ -25,6 +25,8 @@ struct update_data_t
   float q[4];
   float w[3];
   float r[12];
+  float roll;
+  float pitch;
   float yaw;
   float weights[12];
   float traj[12*K_MAX_GAIT_SEGMENTS];

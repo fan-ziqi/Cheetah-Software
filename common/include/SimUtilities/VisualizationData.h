@@ -55,6 +55,8 @@ struct CheetahVisualization {
   Quat<float> quat;
   Vec3<float> p;
   Vec4<float> color;
+  Vec3<float> acc;
+
 };
 
 /*!
